@@ -69,6 +69,15 @@ Framework detection (`src/overlay/frameworks.ts`) reads, in order: React `__reac
 Vue `__vueParentComponent`, Svelte `svelte-<hash>` class, Solid `_$*`/`$signal*` marks, then global
 markers (`__NUXT__`, `__NEXT_DATA__`, `__SVELTEKIT_*`, `__VUE__`, `__REACT_REFRESH__`).
 
+**How the bar gets into the page.** The hub injects `<script type="module" src="<base>embedded.js">`
+through Vite's `transformIndexHtml`, which only runs for file-backed `index.html` SPAs. SSR
+frameworks that render the document in JS and stream it (TanStack Start / Solid Start, Nuxt,
+SvelteKit) never hit that hook, so `use-devfra` also mounts a dev-only middleware
+(`src/ssr-inject.ts`) that patches the response stream and inserts the same tag before the first
+`</body>`. It holds back 6 bytes so a `</body>` split across chunks is not missed, skips responses
+that are not `text/html` or already carry `content-length`, and never double-injects when the hub's
+own transform already ran. Disable all of it with `overlay: false`.
+
 ## 5. RPC reference
 
 All ids are namespaced `use-devfra` (`scope.rpc.call('list-comments')`, MCP `use-devfra_list-comments`).
@@ -172,6 +181,7 @@ useDevfra({ plugins: ['use-devfra'] })
 |---|---|
 | `no agent CLI found` in a comment | no `claude`/`codex`/`opencode` on PATH — install one or pin `agent.driver` |
 | Overlay bar missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
+| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `use-devfra:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
 | Console: `exports no callable "default"` | the page-script module has no callable default — the dock executor calls `mod.default(hubContext)` |
 | Ideas return `raw` only | the CLI answered in prose — `parseIdeas` needs `title — detail` / JSON-ish lines; refine the focus text |
 | Picker never highlights | the app stops `mousemove` at capture phase or an element overlays the whole page |

@@ -50,7 +50,11 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 ### 3. Verify after mounting
 
 - `http://localhost:<port>/__devframes/` — hub UI; every frame at `<base><id>/` must return 200
-- Overlay bar (Comment / Ideas / Inbox) loads on an app page; pick element → submit → status flips
+- Overlay bar (Comment / Ideas / Inbox) loads on an app page. In SSR apps (TanStack Start / Solid
+  Start / Nuxt / SvelteKit) the document is streamed and Vite's `transformIndexHtml` never runs —
+  the dev-only `use-devfra:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
+  instead (browser `Accept` must include `text/html`; no `content-length` on the response)
+- pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
   `use-devfra_get-meta|scan-dir|list-comments|submit-comment|update-comment|run-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`

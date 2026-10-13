@@ -12,6 +12,9 @@
   ให้เลย พร้อม stream log กลับเข้า Inbox และปุ่ม Re-run
 - **รองรับ Solid / Vue / React / Nuxt / Svelte** — ตรวจจาก runtime marks ของ element
   (React fiber, `__vueParentComponent`, Svelte class hash, Solid `_$` marks, global markers)
+- **SSR ได้เลย ไม่ต้องมี index.html** — TanStack Start / Solid Start / Nuxt / SvelteKit stream
+  document เองจน `transformIndexHtml` ไม่เคยรัน; middleware `ssr-inject` (dev-only) แทรก
+  hub client เข้า HTML ที่ stream ออกก่อน `</body>` ให้อัตโนมัติ
 - **Skill picker จาก harness** — เลือก skills (devin / claude / qoder global + project roots)
   แนบไปกับ comment เพื่อส่งต่อเป็น context ให้ agent
 - **Page capture** — snap หน้าเป็น PNG (html-to-image) เก็บลง storage แล้วแนบ path ใน comment
@@ -39,6 +42,7 @@
 ```text
 src/devframe.ts        defineDevframe (id: use-devfra) + dock + RPC registration
 src/vite.ts            useDevfra(options) → Plugin[] — hub + add-ons ที่เลือก mount
+src/ssr-inject.ts      dev-only middleware: แทรก embedded.js เข้า HTML ที่ SSR stream
 src/index.ts           barrel: definition, useDevfra, protocol types, meta RPC
 src/protocol.ts        Selection / Comment / Idea schemas (zod) เป็น single source of truth
 src/rpc/               comments · agents · skills · capture · ideas · meta

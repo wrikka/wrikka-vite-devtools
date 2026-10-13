@@ -8,6 +8,7 @@ import { createInspectDevframe } from '@devframes/plugin-inspect'
 import { createOgDevframe } from '@devframes/plugin-og'
 import { createTerminalsDevframe } from '@devframes/plugin-terminals'
 import { createDevframeDefinition, type DevframeOptions } from './devframe'
+import { createSsrInjectPlugin } from './ssr-inject'
 
 export type UseDevfraPluginKey =
   | 'use-devfra'
@@ -91,6 +92,9 @@ export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
     return factories[k](options)
   })
   return [
+    // SSR frameworks stream their own document, so transformIndexHtml never
+    // runs there — this injects the hub client (and dock) into streamed HTML.
+    ...(options.overlay === false ? [] : [createSsrInjectPlugin(options.base)]),
     viteDevframeHub({
       base: options.base,
       devframes,

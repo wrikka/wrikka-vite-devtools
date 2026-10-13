@@ -49,14 +49,19 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 1. Layering: `vite.ts` (public plugin, options, frame selection) → `devframe.ts` (definition + RPC
    wiring) → `rpc/*` (one file per bounded context) → `agent-runner.ts` / `comment-store.ts` /
    `prompts.ts` (infrastructure). `index.ts` is the only barrel.
-2. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script: `dom.ts` (element
+2. Client injection has two paths: the hub's `transformIndexHtml` (file-backed `index.html` only)
+   and `ssr-inject.ts` — a dev-only middleware that patches `res.write`/`res.end` to insert
+   `<base>embedded.js` before the first `</body>` of a streamed HTML response (6-byte hold-back for
+   split tags, bail-out on non-HTML or `content-length`, dedup when the hub already injected).
+   Keep the two paths idempotent against each other when touching either.
+3. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script: `dom.ts` (element
    builder, shadow host, CSS) → `picker.ts` (capture-phase highlight) → `frameworks.ts` (element
    description) → `composer.ts` / `inbox.ts` / `ideas-ui.ts` (panels) → `main.ts` (bar + wiring).
-3. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
+4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
    and the MCP suffix (`use-devfra_submit-comment`). Never rename without updating `USAGE.md` §5.
-4. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
+5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
    the devframe shared-state `comments` slice; agent output streams on the `agent-logs` channel.
-5. New option surface goes through `UseDevfraOptions` → `DevframeOptions`; keep both JSDoc'd, they
+6. New option surface goes through `UseDevfraOptions` → `DevframeOptions`; keep both JSDoc'd, they
    are copied into `README.md` / `USAGE.md` tables.
 
 ### 4. Verify A Change
