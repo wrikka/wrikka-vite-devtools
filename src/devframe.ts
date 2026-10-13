@@ -47,19 +47,25 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
 
   return defineDevframe({
     id: 'use-devfra',
-    name: 'Use Devfra',
+    name: 'Comment',
     version: pkg.version,
     packageName: pkg.name,
     importMetaUrl: import.meta.url,
     homepage: pkg.homepage ?? 'https://devfra.me',
-    description: pkg.description ?? 'Devframe hub as a Vite plugin',
-    icon: 'ph:cube-duotone',
+    description: 'In-page comments and ideas that drive agent CLIs',
+    icon: 'ph:chat-circle',
     clientAssets,
     capabilities: { dev: true, build: true },
     dock:
       options.overlay === false
         ? undefined
-        : { clientScript: { importFrom: overlayScript, eager: true } },
+        : {
+            // No bottom-left dock button — the in-page bar and the hub frame
+            // page are the UI; the entry stays registered so the page script
+            // still runs.
+            visibility: 'false',
+            clientScript: { importFrom: overlayScript, eager: true },
+          },
     async setup(ctx) {
       const us = ctx.scope('use-devfra')
       us.rpc.register(getMeta)

@@ -43,7 +43,7 @@ export default defineConfig({
 | `skillsRoots` | `string[]` | `defaultSkillRoots()` | extra/override directories scanned by `list-skills` |
 | `agent.driver` | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` | which CLI drives comment runs and idea generation |
 | `agent.autoRun` | `boolean` | `true` | start the agent the moment a `kind: 'comment'` is submitted |
-| `overlay` | `boolean` | `true` | `false` drops the dock page-script (no in-page comment bar) |
+| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>use-devfra/` |
 
 `defaultSkillRoots()` scans: `<devin>/skills` (AppData), `~/.claude/skills`, `~/.qoder/skills`,
 `./skills`, `./.claude/skills`, `./.devin/skills`. Unknown plugin keys throw at config load.
