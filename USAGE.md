@@ -126,6 +126,14 @@ const { streamId } = await scope.rpc.call('run-agent', { commentId: comment.id }
 Typed ids come from `src/client/typed-rpc.d.ts` (module augmentation of
 `DevframeRpcClientFunctions`), so `scope.rpc.call('submit-comment', …)` is checked in the frame SPA.
 
+The shipped frame SPA at `<base>use-devfra/` (built from `src/client/`) is a full inbox: it calls
+`runner-info`, `list-skills` and `list-comments` (polled every 2 s), offers a submit form
+(kind / mode / cssPath / page / multi-select skills), Re-run per comment, and streams
+`agent-logs` into each card. It is styled with UnoCSS (`presetWind4` + variant-group and
+directives transformers, no shortcuts). If you rebuild `src/client/` yourself, keep the three
+build settings documented in README "Dev หมายเหตุ": explicit `UnoCSS(<path>/uno.config.ts)`,
+a `content.pipeline.include` that also matches plain `.ts`, and `base: './'`.
+
 ## 7. MCP
 
 `POST <base>__mcp` (requires an `Origin` header matching the Vite server). `tools/list` aggregates

@@ -22,6 +22,9 @@
   แล้ว prefill เป็น comment ได้ทันที
 - **Hub + add-ons + MCP** — inspect, og, a11y, git, assets, terminals (opt-in:
   data-inspector, code-server) และ MCP tool รวมทุก frame ที่ `POST <base>__mcp`
+- **Inbox ใน frame ของ hub** — หน้า `use-devfra` ใน hub (`/__devframes/use-devfra/`) มี
+  comments panel: list แบบ poll ทุก 2s, ฟอร์ม submit (kind/mode/cssPath/page/skills),
+  Re-run และ stream log ต่อ comment — ทุกคอมเมนต์จาก overlay และ MCP มาโผล่ที่นี่
 
 ## Stack
 
@@ -50,7 +53,8 @@ src/agent-runner.ts    drive claude / codex / opencode CLI, stream logs
 src/comment-store.ts   comments.json under the hub project storage dir
 src/overlay/          dock page-script (self-contained bundle): dom · picker ·
                        frameworks · composer · inbox · ideas-ui · main
-src/client/           SPA ของ frame — connectDevframe() + typed rpc
+src/client/           SPA ของ frame — connectDevframe() + typed rpc + comments panel
+                      (UnoCSS presetWind4, ดูหมายเหตุ Dev ด้านล่าง)
 examples/playground/  Vite app ที่ mount plugin (auth: false) — ที่สำหรับ verify agent e2e
 ```
 
@@ -102,3 +106,9 @@ bun run typecheck
 - overlay ต้อง bundle ให้ self-contained ที่สุด เพราะ hub serve เฉพาะ directory ของ `clientScript`
   แล้ว rewrite แค่ specifier ของ entry — sibling chunks ที่ `dist/overlay/` emit ออกมา resolve
   จาก path เดียวกัน (`<base><id>/__page-script/…`) และ module ต้อง export `default` เป็น function
+- frame client (`src/client/`) ใช้ UnoCSS `presetWind4` + variant-group/directives transformers
+  (ไม่มี shortcuts) — ต้องตั้ง 3 อย่าง ไม่งั้นพังเงียบ:
+  `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))` (plugin หา config จาก repo root ไม่เจอ),
+  `content.pipeline.include` เพิ่ม `?` ให้ `[jt]sx` (class อยู่ใน `.ts` ธรรมดา — default pipeline
+  ไม่ scan และ setting นี้ *แทนที่* default ไม่ใช่ union), และ `base: './'` (hub serve ที่
+  `/__devframes/<id>/` — absolute `/assets` จะ 404)

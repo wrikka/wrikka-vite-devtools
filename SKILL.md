@@ -56,6 +56,8 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
   instead (browser `Accept` must include `text/html`; no `content-length` on the response)
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
+- Hub frame inbox at `<base>use-devfra/` — the frame client (`src/client/`, UnoCSS-styled) shows
+  runner info, the submit form, live comment list (2 s poll), Re-run and streamed logs
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
   `use-devfra_get-meta|scan-dir|list-comments|submit-comment|update-comment|run-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
   plus `devframes_plugin_*`, `devframes_service_git_*`

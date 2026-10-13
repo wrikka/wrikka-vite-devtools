@@ -103,6 +103,11 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 - `devframe.ts` resolves `dist/overlay/index.mjs` at runtime, so the overlay entry name is fixed.
 - The overlay mirrors protocol types in plain TS (`src/overlay/api.ts`) instead of importing `zod` —
   keep the browser bundle free of the server validator.
+- The frame client (`src/client/`) is the hub-side inbox (comments panel, UnoCSS `presetWind4`,
+  no shortcuts). Its vite build must keep `base: './'`, the explicit
+  `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))` path, and a `content.pipeline.include`
+  matching plain `.ts` — each of the three fails silently otherwise (404 assets / default config /
+  missing classes). See README "Dev หมายเหตุ".
 
 ### 3. Code Conventions
 
