@@ -2,7 +2,7 @@ import { readdir, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { defineRpcFunction } from 'devframe'
 import { z } from 'zod'
-import pkg from '../package.json'
+import pkg from '../../package.json'
 
 const MAX_ENTRIES = 200
 const DEFAULT_LIMIT = 50

@@ -27,7 +27,8 @@
   "scripts": {
     "build:client": "vite build src/client",
     "build:pkg": "tsdown",
-    "build": "bun run build:pkg && bun run build:client",
+    "build:overlay": "tsdown -c tsdown.overlay.config.ts",
+    "build": "bun run build:pkg && bun run build:overlay && bun run build:client",
     "playground": "bun run build && vite examples/playground --port 5199",
     "typecheck": "tsc --noEmit"
   },
@@ -53,6 +54,7 @@
     "@devframes/service-shiki": "^1.2.4",
     "@devframes/vite": "^1.2.4",
     "devframe": "^1.2.4",
+    "html-to-image": "^1.11.13",
     "zod": "^4.6.7"
   },
   "devDependencies": {

@@ -7,7 +7,7 @@ import { createGitDevframe } from '@devframes/plugin-git'
 import { createInspectDevframe } from '@devframes/plugin-inspect'
 import { createOgDevframe } from '@devframes/plugin-og'
 import { createTerminalsDevframe } from '@devframes/plugin-terminals'
-import devframeDefinition from './devframe'
+import { createDevframeDefinition, type DevframeOptions } from './devframe'
 
 export type UseDevfraPluginKey =
   | 'use-devfra'
@@ -36,10 +36,15 @@ const ALL_PLUGINS: UseDevfraPluginKey[] = [
   'code-server',
 ]
 
-type Factory = () => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
+type Factory = (options: UseDevfraOptions) => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
 
 const factories: Record<UseDevfraPluginKey, Factory> = {
-  'use-devfra': () => devframeDefinition,
+  'use-devfra': (options) =>
+    createDevframeDefinition({
+      skillsRoots: options.skillsRoots,
+      agent: options.agent,
+      overlay: options.overlay,
+    }),
   inspect: () => createInspectDevframe(),
   'data-inspector': () => createDataInspectorDevframe(),
   og: () => createOgDevframe(),
@@ -64,6 +69,12 @@ export interface UseDevfraOptions {
   build?: boolean
   /** Silence the Vite DevTools recommendation notice. */
   quiet?: boolean
+  /** Extra skill roots for the harness picker (default: devin/claude/qoder global + project dirs). */
+  skillsRoots?: string[]
+  /** Comment→agent runner: `'auto'` or a pinned driver, and autoRun (default true). */
+  agent?: DevframeOptions['agent']
+  /** `false` disables the in-app comment overlay dock. Default on. */
+  overlay?: boolean
 }
 
 export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
@@ -77,7 +88,7 @@ export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
       const def = createDataInspectorDevframe()
       return { ...def, id: 'data-inspector' }
     }
-    return factories[k]()
+    return factories[k](options)
   })
   return [
     viteDevframeHub({

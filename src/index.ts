@@ -1,4 +1,7 @@
 export { default as devframeDefinition } from './devframe'
+export { createDevframeDefinition, defaultSkillRoots } from './devframe'
+export type { DevframeOptions, UseDevfraAgentOptions } from './devframe'
 export { useDevfra, default } from './vite'
 export type { UseDevfraOptions, UseDevfraPluginKey } from './vite'
 export { getMeta, scanDir } from './rpc'
+export type { Selection, Comment, CommentsState, Idea } from './protocol'
