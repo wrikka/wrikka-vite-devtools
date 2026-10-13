@@ -16,14 +16,15 @@ export function el<K extends keyof HTMLElementTagNameMap>(
 
 const STYLE = `
 :host { all: initial; }
-.bar { position: fixed; right: 12px; bottom: 12px; z-index: 2147483000; display: flex; gap: 6px;
-  align-items: center; padding: 6px 8px; border-radius: 10px; background: #17181d; color: #e8e9ed;
+.bar { position: fixed; left: 12px; bottom: 64px; z-index: 2147483000; display: flex; gap: 6px;
+  align-items: center; padding: 6px 10px; border-radius: 10px; background: #17181d; color: #e8e9ed;
   font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; box-shadow: 0 4px 18px rgba(0,0,0,.45); }
 .bar select, .bar button { font: inherit; color: inherit; background: #26282f; border: 1px solid #3a3d46;
   border-radius: 6px; padding: 3px 8px; cursor: pointer; }
 .bar button:hover, .bar select:hover { background: #343741; }
+.bar button.off { opacity: 0.45; }
 .bar .badge { background: #4c6ef5; border-radius: 999px; padding: 0 6px; font-weight: 600; }
-.panel { position: fixed; right: 12px; bottom: 56px; z-index: 2147483001; width: min(420px, calc(100vw - 24px));
+.panel { position: fixed; left: 12px; bottom: 108px; z-index: 2147483001; width: min(420px, calc(100vw - 24px));
   max-height: min(70vh, 640px); overflow: auto; padding: 12px; border-radius: 12px; background: #17181d;
   color: #e8e9ed; font: 12px/1.5 ui-sans-serif, system-ui, sans-serif; box-shadow: 0 8px 30px rgba(0,0,0,.5);
   display: flex; flex-direction: column; gap: 8px; }
@@ -51,6 +52,13 @@ const STYLE = `
   background: rgba(76,110,245,.12); border-radius: 3px; }
 .pick-tip { position: fixed; z-index: 2147483003; pointer-events: none; background: #17181d; color: #e8e9ed;
   font: 11px ui-monospace, monospace; border-radius: 6px; padding: 2px 8px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.pin { position: fixed; z-index: 2147482999; width: 20px; height: 20px; border-radius: 999px;
+  background: #4c6ef5; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.45);
+  font: 700 11px/16px ui-sans-serif, system-ui, sans-serif; text-align: center; padding: 0; cursor: pointer; }
+.bubble { position: fixed; z-index: 2147483001; max-width: min(320px, calc(100vw - 24px)); display: flex;
+  flex-direction: column; gap: 6px; padding: 10px; border-radius: 10px; background: #17181d; color: #e8e9ed;
+  font: 12px/1.5 ui-sans-serif, system-ui, sans-serif; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.bubble .close { position: absolute; top: 4px; right: 6px; background: none; border: none; color: #9aa0ab; cursor: pointer; }
 `
 
 /** One host element per overlay UI, styles isolated in a shadow root. */

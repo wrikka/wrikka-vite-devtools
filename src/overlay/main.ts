@@ -2,10 +2,11 @@ import { connectDevframe } from 'devframe/client'
 import { el, mount } from './dom'
 import { startPick } from './picker'
 import { describe, globalFramework } from './frameworks'
-import { pageUrl, type Idea, type OverlayApi, type Selection } from './api'
+import { pageUrl, type Comment, type Idea, type OverlayApi, type Selection } from './api'
 import { openComposer } from './composer'
 import { openInbox } from './inbox'
 import { openIdeas } from './ideas-ui'
+import { openAnnotations } from './annotations'
 
 declare global {
   interface Window {
@@ -46,8 +47,14 @@ async function boot(): Promise<void> {
   const commentBtn = el('button', {}, ['Comment'])
   const ideasBtn = el('button', {}, ['Ideas'])
   const inboxBtn = el('button', {}, ['Inbox'])
+  const pinsBtn = el('button', { title: 'show / hide annotation pins' }, ['Pins'])
+  const annotations = openAnnotations(root)
 
-  root.append(el('div', { class: 'bar' }, [mode, commentBtn, ideasBtn, inboxBtn, badge]))
+  root.append(el('div', { class: 'bar' }, [mode, commentBtn, ideasBtn, inboxBtn, pinsBtn, badge]))
+
+  pinsBtn.addEventListener('click', () => {
+    pinsBtn.classList.toggle('off', !annotations.toggle())
+  })
 
   commentBtn.addEventListener('click', () => {
     const m = mode.value as Mode
@@ -72,15 +79,16 @@ async function boot(): Promise<void> {
     badge.textContent = String(n)
   }
 
-  setInterval(() => void pollBadge(), 5000)
-  void pollBadge()
+  setInterval(() => void poll(), 5000)
+  void poll()
 
-  async function pollBadge(): Promise<void> {
+  async function poll(): Promise<void> {
     try {
-      const { items } = await api.call('list-comments')
-      updateBadge(items.filter((c: { status: string }) => c.status === 'queued' || c.status === 'running').length)
-    } catch {
-      /* server not up yet */
+      const { items } = (await api.call('list-comments')) as { items: Comment[] }
+      updateBadge(items.filter((c) => c.status === 'queued' || c.status === 'running').length)
+      annotations.refresh(items)
+    } catch (err) {
+      console.warn('[use-devfra] poll failed:', err)
     }
   }
 }

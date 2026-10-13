@@ -50,7 +50,8 @@ export default defineConfig({
 
 ## 4. Overlay flow
 
-A shadow-DOM bar (`#devfra-overlay-host`, top-layer z-index) with a mode `<select>` and three buttons:
+A shadow-DOM toolbar (`#devfra-overlay-host`, top-layer z-index) fixed bottom-left above the hub
+dock, with a mode `<select>`, three action buttons, a **Pins** toggle and a badge:
 
 1. `element` / `component` → capture-phase picker highlights the element under the cursor
    (`Esc` cancels); a click locks it. `component` additionally resolves the nearest framework
@@ -63,7 +64,12 @@ A shadow-DOM bar (`#devfra-overlay-host`, top-layer z-index) with a mode `<selec
 4. **Ideas** → `generate-ideas` (optional focus text) renders selectable cards
    (title/detail/impact); **Apply** opens the composer prefilled with
    `Implement: <title> — <detail>`.
-5. The badge counts `queued + running` comments and refreshes every 5s.
+5. **Pins** → annotations: every `element`/`component` comment on the current page gets a numbered
+   pin anchored to its element (`src/overlay/annotations.ts`). Pins follow scroll/resize, clamp to
+   the viewport, and a click opens a bubble with the body, status pill, `mode @ cssPath` and the
+   agent's `resultSummary`. The toggle hides/shows all pins. **Page**-mode comments never pin.
+6. The badge counts `queued + running` comments; pins, bubbles and badge refresh from the
+   `list-comments` poll every 5s.
 
 Framework detection (`src/overlay/frameworks.ts`) reads, in order: React `__reactFiber$*` walk,
 Vue `__vueParentComponent`, Svelte `svelte-<hash>` class, Solid `_$*`/`$signal*` marks, then global

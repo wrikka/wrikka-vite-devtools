@@ -136,7 +136,7 @@ function buildForm(api: ClientApi, onDone: () => void): HTMLElement {
   skills.className = 'w-full rounded border border-neutral-300 p-1 text-xs dark:border-neutral-700'
   skills.add(option('', 'no skills attached'))
   void api
-    .call('list-skills')
+    .call('list-skills', {})
     .then((res: { skills: { name: string; description: string }[] }) => {
       skills.replaceChildren()
       for (const s of res.skills) skills.add(option(s.name, `${s.name} — ${s.description.slice(0, 80)}`))

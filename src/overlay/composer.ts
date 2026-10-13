@@ -34,7 +34,7 @@ export function openComposer(api: OverlayApi, root: ShadowRoot, opts: ComposerOp
   ta.focus()
 
   void api
-    .call('list-skills')
+    .call('list-skills', {})
     .then((res: { skills: { name: string }[] }) => {
       chips.replaceChildren(
         ...res.skills.slice(0, 30).map((s) =>

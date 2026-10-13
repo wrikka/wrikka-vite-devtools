@@ -56,7 +56,9 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    Keep the two paths idempotent against each other when touching either.
 3. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script: `dom.ts` (element
    builder, shadow host, CSS) → `picker.ts` (capture-phase highlight) → `frameworks.ts` (element
-   description) → `composer.ts` / `inbox.ts` / `ideas-ui.ts` (panels) → `main.ts` (bar + wiring).
+   description) → `composer.ts` / `inbox.ts` / `ideas-ui.ts` (panels) → `annotations.ts` (element
+   pins + bubbles, refreshed from the 5s poll) → `main.ts` (bottom-left toolbar + wiring).
+   `CommentStore.update` must replace items immutably — devframe shared state freezes them.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
    and the MCP suffix (`use-devfra_submit-comment`). Never rename without updating `USAGE.md` §5.
 5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into

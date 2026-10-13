@@ -55,11 +55,14 @@ export class CommentStore {
   }
 
   update(id: string, patch: Partial<Comment>): Comment | undefined {
-    const current = this.items.find((c) => c.id === id)
-    if (!current) return undefined
-    Object.assign(current, patch)
+    const index = this.items.findIndex((c) => c.id === id)
+    if (index === -1) return undefined
+    const current = this.items[index]
+    // devframe shared state freezes synced items — replace, never mutate
+    const updated: Comment = Object.assign({}, current, patch)
+    this.items[index] = updated
     this.emit()
-    return current
+    return updated
   }
 
   private emit(): void {
