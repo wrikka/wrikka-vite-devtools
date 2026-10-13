@@ -66,7 +66,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 
 | Icon | Feature | Description | Benefit | Usage |
 |:---:|---|---|---|---|
-| ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Bottom-left shadow-DOM toolbar with `element` / `component` / `page` pickers, above the hub dock | Feedback lands on the exact node, not a screenshot | open any dev page |
+| ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Edge-attached full-width bottom toolbar (Solid + UnoCSS, shadow DOM) with `element` / `component` / `page` pickers | Feedback lands on the exact node, not a screenshot | open any dev page |
 | ![n](https://api.iconify.design/mdi/map-marker-radius-outline.svg?color=%233949ab&width=16) | Pinned annotations | Numbered pins anchor to commented elements; click a pin for its bubble (body, status, agent result); **Pins** toggles them | see every open comment in its real page context | **Pins** button |
 | ![r](https://api.iconify.design/mdi/robot.svg?color=%237b1fa2&width=16) | Agent auto-run | A submitted comment spawns claude / codex / opencode with the prompt on stdin | idea → edited code without leaving the browser | `agent: { autoRun: true }` |
 | ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>use-devfra/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>use-devfra/` |

@@ -14,9 +14,11 @@ export function startPick(opts: {
   onCancel: () => void
 }): PickHandle {
   const box = document.createElement('div')
-  box.className = 'pick'
+  box.className =
+    'pointer-events-none absolute z-[2147483002] rounded-[3px] border-2 border-solid border-[#4c6ef5] bg-[rgba(76,110,245,0.12)]'
   const tip = document.createElement('div')
-  tip.className = 'pick-tip'
+  tip.className =
+    'pointer-events-none absolute z-[2147483003] whitespace-nowrap rounded-md bg-[#17181d] px-2 py-0.5 font-mono text-[11px] text-[#e8e9ed] shadow-[0_2px_10px_rgba(0,0,0,0.4)]'
   opts.hostRoot.append(box, tip)
 
   let target: Element | null = null

@@ -66,7 +66,7 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 
 ```bash
 bun install
-bun run build        # tsdown (pkg + overlay) then vite build client; tsdown clean:true wipes dist
+bun run build        # tsdown (pkg) → vite overlay build + CSS inline → vite client; tsdown clean:true wipes dist
 bun run playground   # http://localhost:5199/__devframes/ — imports dist, rebuild after src edits
 bun run typecheck
 ```
@@ -76,12 +76,14 @@ bun run typecheck
 - Only pass `plugins: 'all'` when `@devframes/plugin-code-server` is installed (optional peer)
 - `data-inspector` is re-keyed to id `data-inspector` by the plugin — its native id contains colons and is not hub-mountable (DF8004)
 - Services (`@devframes/service-{open,git,shiki}`) are self-provided by the plugins — never pass `services` into hub options
-- The overlay bundle must be self-contained (`tsdown.overlay.config.ts` inlines every bare import);
-  the hub serves `dirname(clientScript.importFrom)` under the *devframe's own* base
-  (`<base><id>/__page-script/<file>`), so rolldown sibling chunks resolve — never emit `inlineDynamicImports`
-- The dock executor calls the page-script module's `default`, so the overlay entry must export a
-  callable `default` (guarded by `window.__DEVFRA_OVERLAY__`); a side-effect-only module logs
-  `exports no callable "default"`
+- The overlay bundle must be ONE self-contained file (`vite.overlay.config.ts` builds the Solid/UnoCSS
+  lib with `codeSplitting: false`; `scripts/inline-overlay-css.ts` folds the emitted stylesheet into
+  `index.mjs` and deletes the sibling `.css`); the hub serves `dirname(clientScript.importFrom)`
+  under the *devframe's own* base (`<base><id>/__page-script/<file>`) — sibling assets would 404,
+  never emit `inlineDynamicImports`
+- The dock executor calls the page-script module's `default`, so the overlay entry
+  (`src/overlay/main.tsx`) must export a callable `default` (guarded by
+  `window.__DEVFRA_OVERLAY__`); a side-effect-only module logs `exports no callable "default"`
 - MCP `tools/call` arguments are positional — a single-object RPC signature arrives as `{"arg0": {…}}`;
   a flat object fails with `DF0043`
 - Agent runs are driven from `process.cwd()` of the dev server — e2e agent checks live in `examples/playground` only

@@ -50,8 +50,10 @@ export default defineConfig({
 
 ## 4. Overlay flow
 
-A shadow-DOM toolbar (`#devfra-overlay-host`, top-layer z-index) fixed bottom-left above the hub
-dock, with a mode `<select>`, three action buttons, a **Pins** toggle and a badge:
+A Solid + UnoCSS toolbar (`#devfra-overlay-host`, shadow DOM, top-layer z-index) attached to the
+bottom edge of the viewport — full width, no floating pill — with a mode `<select>`, **Comment /
+Ideas / Inbox** buttons, a **Pins** toggle and a badge. Exactly one panel is open at a time; `Esc`
+closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
 
 1. `element` / `component` → capture-phase picker highlights the element under the cursor
    (`Esc` cancels); a click locks it. `component` additionally resolves the nearest framework
@@ -65,9 +67,10 @@ dock, with a mode `<select>`, three action buttons, a **Pins** toggle and a badg
    (title/detail/impact); **Apply** opens the composer prefilled with
    `Implement: <title> — <detail>`.
 5. **Pins** → annotations: every `element`/`component` comment on the current page gets a numbered
-   pin anchored to its element (`src/overlay/annotations.ts`). Pins follow scroll/resize, clamp to
-   the viewport, and a click opens a bubble with the body, status pill, `mode @ cssPath` and the
-   agent's `resultSummary`. The toggle hides/shows all pins. **Page**-mode comments never pin.
+   pin anchored to its element (`src/overlay/ui/Pins.tsx` + `anchor.ts`). Pins follow scroll/resize,
+   clamp to the viewport, and a click opens a bubble with the body, status pill, `mode @ cssPath`
+   and the agent's `resultSummary`. The toggle hides/shows all pins. **Page**-mode comments never
+   pin.
 6. The badge counts `queued + running` comments; pins, bubbles and badge refresh from the
    `list-comments` poll every 5s.
 

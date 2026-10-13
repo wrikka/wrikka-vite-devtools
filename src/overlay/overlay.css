@@ -1,0 +1,8 @@
+/* Base styles the utility layer cannot express: shadow host isolation.
+   The app page is never reset — presetWind4 preflight reset stays disabled. */
+:host {
+  all: initial;
+  font: 12px/1.5 ui-sans-serif, system-ui, sans-serif;
+  color: #e8e9ed;
+  text-align: left;
+}
