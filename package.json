@@ -1,7 +1,6 @@
 {
   "name": "use-devfra",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Devframe devtools hub as one Vite plugin — add-ons, services, MCP included",
   "homepage": "https://devfra.me",
@@ -21,7 +20,10 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build:client": "vite build src/client",
     "build:pkg": "tsdown",
