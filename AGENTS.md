@@ -107,7 +107,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   no shortcuts). Its vite build must keep `base: './'`, the explicit
   `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))` path, and a `content.pipeline.include`
   matching plain `.ts` — each of the three fails silently otherwise (404 assets / default config /
-  missing classes). See README "Dev หมายเหตุ".
+  missing classes). See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ### 3. Code Conventions
 

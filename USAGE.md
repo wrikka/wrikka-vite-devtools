@@ -131,8 +131,30 @@ The shipped frame SPA at `<base>use-devfra/` (built from `src/client/`) is a ful
 (kind / mode / cssPath / page / multi-select skills), Re-run per comment, and streams
 `agent-logs` into each card. It is styled with UnoCSS (`presetWind4` + variant-group and
 directives transformers, no shortcuts). If you rebuild `src/client/` yourself, keep the three
-build settings documented in README "Dev หมายเหตุ": explicit `UnoCSS(<path>/uno.config.ts)`,
-a `content.pipeline.include` that also matches plain `.ts`, and `base: './'`.
+build settings documented in [`CONTRIBUTING.md`](CONTRIBUTING.md): explicit
+`UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))`, a `content.pipeline.include` that also
+matches plain `.ts`, and `base: './'`.
+
+### Driving the agent from the frame (opencode pattern)
+
+The frame inbox is the complete agent console — no page overlay needed. Pin the driver once:
+
+```ts
+useDevfra({ agent: { driver: 'opencode' } })
+```
+
+1. Open `<base>use-devfra/` — the header comes from `runner-info`; `driver: opencode` confirms the
+   pin, `available` lists every installed CLI (`'auto'` would pick the first of claude → codex →
+   opencode).
+2. Submit with kind `comment` → `autoRun` immediately runs `opencode run` in the project cwd with
+   the prompt written to **stdin** — no shell quoting, safe for `.cmd` shims on Windows. The same
+   path serves comments created from the overlay or via MCP: one store, one runner.
+3. The card streams stdout live; the run ends with `exit 0 ok` and the `SUMMARY:` line the prompt
+   demands becomes the comment's `resultSummary` (15-min timeout).
+4. **Re-run** on any card calls `run-agent` for that comment and subscribes to a fresh
+   `agent-logs` stream (`comment-<id>-<ts>`).
+5. Kind `idea` never spawns on submit — `autoRun` only fires for `kind: 'comment'`, so ideas are
+   safe for probing.
 
 ## 7. MCP
 
@@ -178,6 +200,9 @@ useDevfra({ overlay: false, agent: { autoRun: false } })
 
 // pin the driver and add a project skill folder
 useDevfra({ agent: { driver: 'codex' }, skillsRoots: ['./.devin/skills', 'C:/me/devin-skills'] })
+
+// opencode as the only driver, worked entirely from the frame inbox (see §6)
+useDevfra({ agent: { driver: 'opencode', autoRun: true }, overlay: false })
 
 // minimal mount — only the comment/agent frame
 useDevfra({ plugins: ['use-devfra'] })
