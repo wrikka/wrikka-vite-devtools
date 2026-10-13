@@ -65,7 +65,7 @@ export default function Composer(p: ComposerProps) {
         skills: [...chosen()],
         capturePath,
       })
-      setMsg('submitted — agent starts automatically')
+      setMsg(kind.value === 'comment' ? 'submitted — agent starts automatically' : 'submitted')
       setTimeout(p.onClose, 1500)
     } catch (err) {
       setMsg(`failed: ${String(err)}`)
