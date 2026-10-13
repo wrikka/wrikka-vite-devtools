@@ -1,0 +1,63 @@
+{
+  "name": "use-devfra",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Devframe devtools hub as one Vite plugin — add-ons, services, MCP included",
+  "homepage": "https://devfra.me",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.mts",
+      "default": "./dist/vite.mjs"
+    },
+    "./devframe": {
+      "types": "./dist/devframe.d.mts",
+      "default": "./dist/devframe.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build:client": "vite build src/client",
+    "build:pkg": "tsdown",
+    "build": "bun run build:pkg && bun run build:client",
+    "playground": "bun run build && vite examples/playground --port 5199",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "vite": ">=5"
+  },
+  "optionalDependencies": {
+    "@devframes/plugin-code-server": "^1.2.4"
+  },
+  "dependencies": {
+    "@devframes/agentic": "^1.2.4",
+    "@devframes/hub": "^1.2.4",
+    "@devframes/hub-ui": "^1.2.4",
+    "@devframes/plugin-a11y": "^1.2.4",
+    "@devframes/plugin-assets": "^1.2.4",
+    "@devframes/plugin-data-inspector": "^1.2.4",
+    "@devframes/plugin-git": "^1.2.4",
+    "@devframes/plugin-inspect": "^1.2.4",
+    "@devframes/plugin-og": "^1.2.4",
+    "@devframes/plugin-terminals": "^1.2.4",
+    "@devframes/service-git": "^1.2.4",
+    "@devframes/service-open": "^1.2.4",
+    "@devframes/service-shiki": "^1.2.4",
+    "@devframes/vite": "^1.2.4",
+    "devframe": "^1.2.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "pkg-pr-new": "^0.0.91",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  }
+}

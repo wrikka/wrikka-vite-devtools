@@ -1,0 +1,36 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+body {
+  margin: 0 auto;
+  max-width: 720px;
+  padding: 2rem 1rem;
+}
+h1 {
+  font-size: 1.4rem;
+}
+section {
+  margin-block: 1.5rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 8px;
+}
+pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+form {
+  display: flex;
+  gap: 0.5rem;
+}
+input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+}
+.note {
+  color: gray;
+}
+ul {
+  padding-left: 1.2rem;
+}

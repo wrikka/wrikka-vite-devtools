@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Use Devfra</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Use Devfra</h1>
+      <section id="meta">
+        <h2>Tool meta</h2>
+        <pre id="meta-out">connecting…</pre>
+      </section>
+      <section id="scan">
+        <h2>Directory scan</h2>
+        <form id="scan-form">
+          <input id="scan-path" type="text" placeholder="path (relative to server cwd)" value="." />
+          <button type="submit">Scan</button>
+        </form>
+        <pre id="scan-out">not scanned yet</pre>
+        <p id="scan-note" class="note"></p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
