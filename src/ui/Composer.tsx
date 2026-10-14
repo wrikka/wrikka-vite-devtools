@@ -1,11 +1,16 @@
 import { For, Show, createSignal, onMount } from 'solid-js'
-import { capturePage, pageUrl, type OverlayApi, type Selection } from '../api'
+import type { Selection } from '../protocol'
+import type { PanelApi } from './api'
 import { btn, btnPrimary, chip, chipOn, field, hint, row } from './bits'
 
 export interface ComposerProps {
-  api: OverlayApi
+  api: PanelApi
   selection: Selection
+  /** Target page url — the hub iframe lives on a devtools route, so callers pass it in. */
+  page: string
   prefill?: string
+  /** Omitted on pages with nothing to capture (the hub); the attach row then hides. */
+  capture?: () => Promise<string>
   onClose(): void
 }
 
@@ -50,16 +55,16 @@ export default function Composer(p: ComposerProps) {
     setBusy(true)
     try {
       let capturePath: string | undefined
-      if (attach()) {
+      if (attach() && p.capture) {
         setMsg('capturing page…')
-        const dataUrl = await capturePage()
-        const saved = await p.api.call('save-capture', { dataUrl, page: pageUrl() })
+        const dataUrl = await p.capture()
+        const saved = await p.api.call('save-capture', { dataUrl, page: p.page })
         capturePath = saved.path as string
       }
       setMsg('submitting…')
       await p.api.call('submit-comment', {
         body,
-        page: pageUrl(),
+        page: p.page,
         kind: kind.value as 'comment' | 'idea',
         selection: p.selection,
         skills: [...chosen()],
@@ -99,14 +104,16 @@ export default function Composer(p: ComposerProps) {
           <option value="comment">Comment</option>
           <option value="idea">Idea</option>
         </select>
-        <label class={`${row} cursor-pointer`}>
-          <input
-            type="checkbox"
-            checked={attach()}
-            onChange={(e) => setAttach(e.currentTarget.checked)}
-          />
-          attach page capture
-        </label>
+        <Show when={p.capture}>
+          <label class={`${row} cursor-pointer`}>
+            <input
+              type="checkbox"
+              checked={attach()}
+              onChange={(e) => setAttach(e.currentTarget.checked)}
+            />
+            attach page capture
+          </label>
+        </Show>
       </div>
       <div class={row}>
         <Show

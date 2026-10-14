@@ -43,7 +43,7 @@ export default defineConfig({
 | `skillsRoots` | `string[]` | `defaultSkillRoots()` | extra/override directories scanned by `list-skills` |
 | `agent.driver` | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` | which CLI drives comment runs and idea generation |
 | `agent.autoRun` | `boolean` | `true` | start the agent the moment a `kind: 'comment'` is submitted |
-| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>wrikka-vite-devtools/` |
+| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment pill); the Comments dock page itself has no dock button — its entry points are the pill's hub link and `<base>wrikka-vite-devtools/` |
 
 `defaultSkillRoots()` scans: `<devin>/skills` (AppData), `~/.claude/skills`, `~/.qoder/skills`,
 `./skills`, `./.claude/skills`, `./.devin/skills`. Unknown plugin keys throw at config load.
@@ -63,41 +63,56 @@ It requires `unocss` in the Vite config with its inspector enabled (the default;
 
 ## 4. Overlay flow
 
-A Solid + UnoCSS toolbar (`#wrikka-vite-devtools-overlay-host`, shadow DOM, top-layer z-index) attached to the
-bottom edge of the viewport — full width, no floating pill — with a mode `<select>`, **Comment /
-Ideas / Inbox** buttons, a **Pins** toggle, a **Panels** link and a badge. Exactly one panel is open
-at a time; `Esc` closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
+Two halves: the **pill** in your page and the **Comments** tab in the hub. The pill keeps what needs
+the live DOM (node picking, pinned annotations, the composer for the node you just picked); the
+inbox, ideas and runner diagnostics live in the hub panel.
+
+### In-page pill
+
+A Solid + UnoCSS pill (`#wrikka-vite-devtools-overlay-host`, shadow DOM, top-layer z-index) anchored
+bottom-right — 36 px tall, rounded, it does not cover the page. It carries a status dot
+(idle / queued / running), the `element | component | page` mode `<select>`, **Comment**, a **Pins**
+toggle, and the hub link with a badge counting `queued + running`. `Esc` closes the composer;
+`Ctrl`/`Cmd`+`Enter` submits it. The pill never mounts inside hub or dock documents
+(`src/overlay/hub.ts` → `isHubDocument`), so the panel does not get a duplicate of itself.
 
 1. `element` / `component` → capture-phase picker highlights the element under the cursor
    (`Esc` cancels); a click locks it. `component` additionally resolves the nearest framework
    component name. `page` skips the picker and targets the whole document.
-2. **Comment** → composer: body, `comment | idea` kind, *capture page* checkbox (PNG via
-   `html-to-image` → `save-capture`), and skill chips from `list-skills` (≤30 shown, multi-select).
-   Submit writes the comment; with `autoRun` the agent CLI starts immediately.
-3. **Inbox** → list of comments (newest first) with status pill, selection, skills, capture path and
-   `resultSummary`; **Re-run** calls `run-agent` and streams logs live.
-4. **Ideas** → `generate-ideas` (optional focus text) renders selectable cards
-   (title/detail/impact); **Apply** opens the composer prefilled with
-   `Implement: <title> — <detail>`.
-5. **Pins** → annotations: every `element`/`component` comment on the current page gets a numbered
+2. **Comment** → composer above the pill: body, `comment | idea` kind, *capture page* checkbox
+   (PNG via `html-to-image` → `save-capture`), and skill chips from `list-skills` (≤30 shown,
+   multi-select). Submit writes the comment; with `autoRun` the agent CLI starts immediately.
+3. **Pins** → annotations: every `element`/`component` comment on the current page gets a numbered
    pin anchored to its element (`src/overlay/ui/Pins.tsx` + `anchor.ts`). Pins follow scroll/resize,
    clamp to the viewport, and a click opens a bubble with the body, status pill, `mode @ cssPath`
    and the agent's `resultSummary`. The toggle hides/shows all pins. **Page**-mode comments never
    pin.
-6. The badge counts `queued + running` comments; pins, bubbles and badge refresh from the
-   `list-comments` poll every 5s.
-7. **Panels** (right edge) → the devframe hub at `<hubBase>` in a new tab, for every dock panel
-   (UnoCSS, Vue, React, …) plus this frame's inbox. The bar is the only thing that lives in your
-   page; the panels live in the hub. `src/overlay/hub.ts` derives `<hubBase>` from the module URL
-   the hub served the bar from (`…/__page-script/index.mjs` → its parent mount, `…/wrikka-vite-devtools/`
-   stripped), falling back to `/__devframes/` — so a hub mounted under a base path still links
-   correctly. The glyph is an inline SVG: no Iconify request, works offline.
+4. Pins, the status dot and the badge refresh from the `list-comments` poll every 5 s.
+5. **Hub link** (right edge) → the devframe hub at `<hubBase>`, with the current page url appended
+   as `?page=`. `src/overlay/hub.ts` derives `<hubBase>` from the module URL the hub served the pill
+   from (`…/__page-script/index.mjs` → its parent mount, `…/wrikka-vite-devtools/` stripped),
+   falling back to `/__devframes/` — so a hub mounted under a base path still links correctly.
+   The glyphs are inline SVG: no Iconify request, works offline.
+
+### Hub Comments panel
+
+The same SPA is the hub **Comments** dock page (`<base>wrikka-vite-devtools/`), a tabbed panel
+(`role="tablist"`): **Inbox**, **New comment**, **Ideas**, **Diagnostics**.
+
+1. **Inbox** → list of comments (newest first, polled every 2 s) with status pill, selection, skills,
+   capture path and `resultSummary`; **Re-run** calls `run-agent` and streams logs live.
+2. **New comment** → the target form (page url, mode, cssPath) then the page-agnostic composer. The
+   page field is prefilled from the `?page=` link or, because the hub drops that query before it
+   mounts the dock iframe, from the url the pill stashed on this origin (`src/ui/page-stash.ts`).
+3. **Ideas** → `generate-ideas` (optional focus text) renders selectable cards (title/detail/impact);
+   **Apply** switches to **New comment** prefilled with `Implement: <title> — <detail>`.
+4. **Diagnostics** → `runner-info` (active driver + installed CLIs) and frame metadata.
 
 Framework detection (`src/overlay/frameworks.ts`) reads, in order: React `__reactFiber$*` walk,
 Vue `__vueParentComponent`, Svelte `svelte-<hash>` class, Solid `_$*`/`$signal*` marks, then global
 markers (`__NUXT__`, `__NEXT_DATA__`, `__SVELTEKIT_*`, `__VUE__`, `__REACT_REFRESH__`).
 
-**How the bar gets into the page.** The hub injects `<script type="module" src="<base>embedded.js">`
+**How the pill gets into the page.** The hub injects `<script type="module" src="<base>embedded.js">`
 through Vite's `transformIndexHtml`, which only runs for file-backed `index.html` SPAs. SSR
 frameworks that render the document in JS and stream it (TanStack Start / Solid Start, Nuxt,
 SvelteKit) never hit that hook, so `wrikka-vite-devtools` also mounts a dev-only middleware
@@ -154,26 +169,28 @@ const { streamId } = await scope.rpc.call('run-agent', { commentId: comment.id }
 ```
 
 Typed ids come from `src/client/typed-rpc.d.ts` (module augmentation of
-`DevframeRpcClientFunctions`), so `scope.rpc.call('submit-comment', …)` is checked in the frame SPA.
+`DevframeRpcClientFunctions`), so `scope.rpc.call('submit-comment', …)` is checked in the panel SPA.
 
-The shipped frame SPA at `<base>wrikka-vite-devtools/` (built from `src/client/`) is a full inbox: it calls
-`runner-info`, `list-skills` and `list-comments` (polled every 2 s), offers a submit form
-(kind / mode / cssPath / page / multi-select skills), Re-run per comment, and streams
-`agent-logs` into each card. It is styled with UnoCSS (`presetWind4` + variant-group and
-directives transformers, no shortcuts). If you rebuild `src/client/` yourself, keep the three
-build settings documented in [`CONTRIBUTING.md`](CONTRIBUTING.md): explicit
+The shipped panel SPA at `<base>wrikka-vite-devtools/` (built from `src/client/`) is the hub
+**Comments** tab: its Inbox tab calls `runner-info`, `list-skills` and `list-comments` (polled every
+2 s), the New comment tab offers the target form + composer (kind / mode / cssPath / page /
+multi-select skills), Inbox has Re-run per comment and streams `agent-logs` into each card, and
+Ideas / Diagnostics cover `generate-ideas` and the runner state. It is styled with UnoCSS
+(`presetWind4` + variant-group and directives transformers, no shortcuts). If you rebuild
+`src/client/` yourself, keep the three build settings documented in
+[`CONTRIBUTING.md`](CONTRIBUTING.md): explicit
 `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))`, a `content.pipeline.include` that also
 matches plain `.ts`, and `base: './'`.
 
-### Driving the agent from the frame (opencode pattern)
+### Driving the agent from the hub panel (opencode pattern)
 
-The frame inbox is the complete agent console — no page overlay needed. Pin the driver once:
+The Comments tab is the complete agent console — no page overlay needed. Pin the driver once:
 
 ```ts
 useWrikkaViteDevtools({ agent: { driver: 'opencode' } })
 ```
 
-1. Open `<base>wrikka-vite-devtools/` — the header comes from `runner-info`; `driver: opencode` confirms the
+1. Open `<base>wrikka-vite-devtools/` — the **Diagnostics** tab comes from `runner-info`; `driver: opencode` confirms the
    pin, `available` lists every installed CLI (`'auto'` would pick the first of claude → codex →
    opencode).
 2. Submit with kind `comment` → `autoRun` immediately runs `opencode run` in the project cwd with
@@ -234,7 +251,7 @@ useWrikkaViteDevtools({ overlay: false, agent: { autoRun: false } })
 // pin the driver and add a project skill folder
 useWrikkaViteDevtools({ agent: { driver: 'codex' }, skillsRoots: ['./.devin/skills', 'C:/me/devin-skills'] })
 
-// opencode as the only driver, worked entirely from the frame inbox (see §6)
+// opencode as the only driver, worked entirely from the hub Comments tab (see §6)
 useWrikkaViteDevtools({ agent: { driver: 'opencode', autoRun: true }, overlay: false })
 
 // minimal mount — only the comment/agent frame
@@ -246,11 +263,11 @@ useWrikkaViteDevtools({ plugins: ['wrikka-vite-devtools'] })
 | Symptom | Cause / fix |
 |---|---|
 | `no agent CLI found` in a comment | no `claude`/`codex`/`opencode` on PATH — install one or pin `agent.driver` |
-| Overlay bar missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
-| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `wrikka-vite-devtools:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
+| Overlay pill missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
+| Overlay pill missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `wrikka-vite-devtools:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the pill; load the page through the dev server |
 | Console: `exports no callable "default"` | the page-script module has no callable default — the dock executor calls `mod.default(hubContext)` |
-| Looking for panel buttons in the bar | they were never there: the bar carries Comment/Ideas/Pins/**Panels** only; every dock panel lives in the hub at `<hubBase>` — use **Panels** |
-| Hub dock icons blank | `@devframes/hub-ui` resolves `docks.register({ icon })` names at runtime from `api.iconify.design`; offline/blocked network ⇒ no glyphs. Not overridable from a Kit package — inline SVG only applies to the in-page overlay bar |
+| Looking for Inbox/Ideas on the pill | they were never there: the pill carries the mode picker, Comment, Pins and the **hub link** only; the list, submit form, ideas and runner live in the hub **Comments** tab at `<base>wrikka-vite-devtools/` |
+| Hub dock icon blank | `@devframes/hub-ui` resolves the dock `icon` at runtime from `api.iconify.design`; offline/blocked network ⇒ no glyph. The in-page pill is immune (inline SVG); the dock icon is a package-level choice, not something the page script controls |
 | Ideas return `raw` only | the CLI answered in prose — `parseIdeas` needs `title — detail` / JSON-ish lines; refine the focus text |
 | Picker never highlights | the app stops `mousemove` at capture phase or an element overlays the whole page |
 | `DF8004` on `data-inspector` | already handled — the plugin re-keys the id (colons are not hub-mountable) |

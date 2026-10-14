@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
-import type { Comment } from '../api'
+import type { Comment } from '../../protocol'
 import { findTarget, pagePins } from '../anchor'
-import { hint, statusPill } from './bits'
+import { hint, statusPill } from '../../ui/bits'
 
 export interface PinsProps {
   comments: Comment[]

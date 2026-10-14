@@ -11,3 +11,12 @@ export function hubUrl(moduleUrl: string): string {
   if (at < 0) return DEFAULT_HUB_BASE
   return path.slice(0, at).replace(/[^/]+\/$/, '') || DEFAULT_HUB_BASE
 }
+
+/**
+ * The hub injects the page-script into its own document and into dock frames, where the
+ * pill would duplicate the panel it is meant to link to.
+ */
+export function isHubDocument(moduleUrl: string, pathname: string): boolean {
+  const hub = hubUrl(moduleUrl)
+  return hub !== '/' && pathname.startsWith(hub)
+}

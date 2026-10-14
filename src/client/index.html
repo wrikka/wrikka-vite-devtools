@@ -3,34 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Comment</title>
+    <title>Comments</title>
   </head>
-  <body class="min-h-screen bg-neutral-100 text-neutral-900 dark:(bg-neutral-950 text-neutral-100)">
-    <main class="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 class="text-2xl font-semibold">Comment</h1>
-
-      <section id="runner" class="rounded-lg border border-neutral-300 bg-white p-4 dark:(border-neutral-800 bg-neutral-900)">
-        <h2 class="mb-2 text-lg font-medium">Agent runner</h2>
-        <p id="runner-info" class="text-sm text-neutral-500">checking…</p>
-      </section>
-
-      <section id="comments" class="rounded-lg border border-neutral-300 bg-white p-4 dark:(border-neutral-800 bg-neutral-900)">
-        <h2 class="mb-2 text-lg font-medium">Comments</h2>
-      </section>
-
-      <section id="meta" class="rounded-lg border border-neutral-300 bg-white p-4 dark:(border-neutral-800 bg-neutral-900)">
-        <h2 class="mb-2 text-lg font-medium">Tool meta</h2>
-        <pre id="meta-out" class="max-h-60 overflow-auto rounded bg-neutral-900 p-2 font-mono text-xs text-neutral-100">connecting…</pre>
-      </section>
-
-      <section id="scan" class="rounded-lg border border-neutral-300 bg-white p-4 dark:(border-neutral-800 bg-neutral-900)">
-        <h2 class="mb-2 text-lg font-medium">Directory scan</h2>
-        <form id="scan-form" class="mb-2 flex gap-2">
-          <input id="scan-path" type="text" placeholder="path (relative to server cwd)" value="." class="flex-1 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700" />
-          <button type="submit" class="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700">Scan</button>
-        </form>
-      </section>
-    </main>
-    <script type="module" src="./main.ts"></script>
+  <body class="min-h-screen bg-[#17181d] text-[#e8e9ed]">
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
   </body>
 </html>

@@ -1,9 +1,10 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
-import type { Comment, OverlayApi } from '../api'
+import type { Comment } from '../protocol'
+import type { PanelApi } from './api'
 import { btn, card, chip, chipOn, hint, row, statusPill } from './bits'
 
 export interface InboxProps {
-  api: OverlayApi
+  api: PanelApi
 }
 
 type Filter = 'all' | Comment['status']

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import solid from 'vite-plugin-solid'
 import UnoCSS from 'unocss/vite'
 import { presetWind4 } from 'unocss'
+import { unoPipelineInclude } from './src/uno-pipeline.ts'
 
 // The hub serves dist/overlay/index.mjs verbatim as a dock page-script, so the
 // bundle must be fully self-contained — lib mode with no externals, and the
@@ -11,7 +12,10 @@ export default defineConfig({
     solid(),
     UnoCSS({
       presets: [presetWind4({ preflights: { reset: false } })],
-      content: { filesystem: ['./src/overlay/**/*.{ts,tsx,css}'] },
+      content: {
+        pipeline: { include: unoPipelineInclude },
+        filesystem: ['./src/overlay/**/*.{ts,tsx,css}', './src/ui/**/*.{ts,tsx,css}'],
+      },
     }),
   ],
   build: {

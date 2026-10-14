@@ -4,7 +4,7 @@
 
 [Devframe](https://devfra.me) devtools hub with all add-ons plus an in-page comment→agent workflow
 as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts` and get the hub at
-`/__devframes/`, the **Comment** frame inbox, and an aggregate MCP endpoint for agents.
+`/__devframes/`, the **Comments** hub tab, and an aggregate MCP endpoint for agents.
 
 ![vite](https://img.shields.io/badge/built%20with-vite-646cff) ![devframe](https://img.shields.io/badge/devframe-1.2.x-7b1fa2) ![agents](https://img.shields.io/badge/agent%20CLI-claude%20%7C%20codex%20%7C%20opencode-0097a7)
 
@@ -12,11 +12,11 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 +--------------------------------------------------------------------------+
 | wrikka-vite-devtools: comment -> agent lifecycle (input -> process -> output)      |
 |                                                                          |
-|  1. PICK     overlay bar in any dev page: element | component | page     |
-|              (or type directly into the hub frame form)                  |
+|  1. PICK     overlay pill in any dev page: element | component | page    |
+|              (or type the target directly in the hub Comments tab)       |
 |  2. SUBMIT   submit-comment RPC -> CommentStore (comments.json, queued)  |
 |  3. RUN      auto-run spawns claude / codex / opencode, prompt = stdin   |
-|  4. WATCH    stdout streams on agent-logs -> live log in Inbox + frame   |
+|  4. WATCH    stdout streams on agent-logs -> live log in the hub Inbox   |
 |  5. RESULT   exit 0 + "SUMMARY:" line -> done | failed + resultSummary   |
 |                                                                          |
 |  same store, same runners reachable from MCP: POST <base>__mcp           |
@@ -58,19 +58,18 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
    useWrikkaViteDevtools({ agent: { driver: 'opencode', autoRun: true } })
    ```
 
-5. Comment and watch — pick an element (or the whole page) in the overlay bar, write the request,
-   submit. The agent starts immediately and its log streams into the overlay Inbox and the hub
-   frame inbox.
+5. Comment and watch — pick an element (or the whole page) from the overlay pill, write the request,
+   submit. The agent starts immediately and its log streams into the hub **Comments** tab Inbox.
 
 ## Features
 
 | Icon | Feature | Description | Benefit | Usage |
 |:---:|---|---|---|---|
-| ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Edge-attached full-width bottom toolbar (Solid + UnoCSS, shadow DOM) with `element` / `component` / `page` pickers | Feedback lands on the exact node, not a screenshot | open any dev page |
+| ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment pill | Compact bottom-right pill (Solid + UnoCSS, shadow DOM) with the `element` / `component` / `page` picker, **Comment**, **Pins** and the hub link | Pick the node you mean without a screenshot, and without covering the page | open any dev page |
 | ![n](https://api.iconify.design/mdi/map-marker-radius-outline.svg?color=%233949ab&width=16) | Pinned annotations | Numbered pins anchor to commented elements; click a pin for its bubble (body, status, agent result); **Pins** toggles them | see every open comment in its real page context | **Pins** button |
-| ![h](https://api.iconify.design/mdi/view-dashboard-outline.svg?color=%23607d8b&width=16) | Hub shortcut | **Panels** link on the right of the bar opens the hub (`<hubBase>`) in a new tab; the base is read from the URL the hub served the bar from, so a hub under a custom base still resolves | reach every dock panel (UnoCSS, Vue, React, …) without typing a path | **Panels** button |
+| ![h](https://api.iconify.design/mdi/view-dashboard-outline.svg?color=%23607d8b&width=16) | Hub shortcut | The hub link on the right of the pill opens the hub (`<hubBase>`) with the target page passed along; the base is read from the URL the hub served the pill from, so a hub under a custom base still resolves | reach every dock panel (UnoCSS, Vue, React, …) without typing a path | hub link on the pill |
 | ![r](https://api.iconify.design/mdi/robot.svg?color=%237b1fa2&width=16) | Agent auto-run | A submitted comment spawns claude / codex / opencode with the prompt on stdin | idea → edited code without leaving the browser | `agent: { autoRun: true }` |
-| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>wrikka-vite-devtools/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>wrikka-vite-devtools/` |
+| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comments hub tab | The **Comments** dock page (`<base>wrikka-vite-devtools/`) is a tabbed panel — Inbox, New comment, Ideas, Diagnostics — with a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>wrikka-vite-devtools/` |
 | ![s](https://api.iconify.design/mdi/server-network.svg?color=%23388e3c&width=16) | SSR injection | dev-only middleware patches the streamed HTML when `transformIndexHtml` never runs | works in TanStack Start / Nuxt / SvelteKit with no `index.html` | `overlay: true` (default) |
 | ![l](https://api.iconify.design/mdi/layers.svg?color=%23f57c00&width=16) | Framework aware | Detects Solid / Vue / React / Nuxt / Svelte from runtime marks | the resolved component name goes into the agent prompt | mode `component` |
 | ![k](https://api.iconify.design/mdi/lightning-bolt.svg?color=%23c2185b&width=16) | Skill picker | Attach harness skills (devin / claude / qoder global + project roots) to a comment | the agent follows your conventions | composer skill chips |
@@ -102,44 +101,44 @@ useWrikkaViteDevtools({
 | `auth` | hub OTP gate | `boolean` | hub gate on |
 | `agent.driver` | which CLI runs comments/ideas | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` |
 | `agent.autoRun` | start agent on `kind: 'comment'` submit | `boolean` | `true` |
-| `overlay` | inject the in-page comment bar | `boolean` | `true` |
+| `overlay` | inject the in-page comment pill | `boolean` | `true` |
 | `skillsRoots` | directories scanned by `list-skills` | `string[]` | `defaultSkillRoots()` |
 
-### Usage via the hub frame (agent workflow)
+### Usage via the hub Comments tab (agent workflow)
 
 <details>
 <summary>Open <code>/__devframes/wrikka-vite-devtools/</code> and run the full comment → agent loop in the browser</summary>
 
-The shipped frame SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comments client: it shows
-the active driver from `runner-info`, a submit form (kind / mode / cssPath / page / skills), the
-comment list polled every 2 s, a Re-run button per comment, and the live `agent-logs` stream
-under each running card. Comments created from the overlay, the frame form, or MCP all share one
-store. The frame has no dock-bar button — its entry points are the in-page overlay bar (**Panels**
-opens the hub) and the URL above.
+The shipped panel SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comments client with four
+tabs: **Inbox** (comment list polled every 2 s, Re-run per comment, live `agent-logs` stream),
+**New comment** (target form — page / mode / cssPath — plus the submit composer; the page field is
+prefilled from the pill link or the page the pill last stashed on this origin), **Ideas**, and
+**Diagnostics** (`runner-info`: active driver + every installed CLI). Comments created from the pill,
+the panel form, or MCP all share one store. The panel is the hub **Comments** dock tab — the pill's
+hub link opens it, and the URL above works directly.
 
 ```text
 +----------------------------------------------------------------+
-|  /__devframes/wrikka-vite-devtools/                                      |
-|  runner: driver: opencode - installed: claude, codex, opencode |
-|  +-------------------------+  +------------------------------+ |
-|  | New comment             |  | Comments (poll every 2 s)    | |
-|  | kind [comment   v]      |  | [queued]  Move filters up    | |
-|  | mode [page      v]      |  | [running] Add empty state    | |
-|  | skills [x a11y]         |  | [done]    Fix header Re-run  | |
-|  |            [ Submit ]   |  | > live agent-logs stream     | |
-|  +-------------------------+  +------------------------------+ |
+|  /__devframes/wrikka-vite-devtools/                            |
+|  [ Inbox ] [ New comment ] [ Ideas ] [ Diagnostics ]           |
+|  +------------------------------------------------------------+|
+|  | Comments (poll every 2 s)                                  ||
+|  | [queued]  Move filters up                                  ||
+|  | [running] Add empty state    > live agent-logs stream      ||
+|  | [done]    Fix header   [Re-run]                           ||
+|  +------------------------------------------------------------+|
 +----------------------------------------------------------------+
 ```
 
-The agent pattern — drive every run with **opencode** (or any installed CLI) through the frame:
+The agent pattern — drive every run with **opencode** (or any installed CLI) through the panel:
 
 ```ts
 // vite.config.ts — pin the driver used by auto-run, Re-run and generate-ideas
 useWrikkaViteDevtools({ agent: { driver: 'opencode' } })
 ```
 
-1. The header line comes from `runner-info` — `driver: opencode` confirms the pin; `available`
-   lists every installed CLI.
+1. The **Diagnostics** tab comes from `runner-info` — `driver: opencode` confirms the pin;
+   `available` lists every installed CLI.
 2. Submit a comment with kind `comment` → `autoRun` starts `opencode run` in the project cwd with
    the prompt written to **stdin** (no shell quoting, safe for `.cmd` shims on Windows).
 3. Watch the card stream stdout live; the run ends with `exit 0 ok` and the captured
@@ -157,7 +156,7 @@ useWrikkaViteDevtools({ agent: { driver: 'opencode' } })
 
 </details>
 
-### Usage via frame client API
+### Usage via the devframe client API
 
 ```ts
 import { connectDevframe } from 'devframe/client'

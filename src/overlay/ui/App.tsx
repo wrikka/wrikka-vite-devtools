@@ -1,16 +1,15 @@
 import { Show, createSignal, onCleanup, onMount } from 'solid-js'
 import { globalFramework } from '../frameworks'
-import { pageUrl, type Comment, type Idea, type OverlayApi, type Selection } from '../api'
+import { capturePage, pageUrl, type Comment, type PanelApi, type Selection } from '../api'
 import { startPick } from '../picker'
-import Toolbar, { type ToolbarMode } from './Toolbar'
+import { stashPage } from '../../ui/page-stash'
+import Pill, { type PillMode } from './Pill'
 import Panel from './Panel'
-import Composer from './Composer'
-import Inbox from './Inbox'
-import Ideas from './Ideas'
+import Composer from '../../ui/Composer'
 import Pins from './Pins'
 
 export interface AppProps {
-  api: OverlayApi
+  api: PanelApi
   root: ShadowRoot
   hub: string
 }
@@ -24,20 +23,17 @@ function pageSelection(): Selection {
   return { mode: 'page', framework: globalFramework(), cssPath: 'html', tagName: 'html', textPreview: pageUrl() }
 }
 
-function ideaPrefill(idea: Idea): string {
-  return `Implement: ${idea.title} — ${idea.detail}`
-}
-
 export default function App(p: AppProps) {
-  const [mode, setMode] = createSignal<ToolbarMode>('element')
+  const [mode, setMode] = createSignal<PillMode>('element')
   const [comments, setComments] = createSignal<Comment[]>([])
-  const [badge, setBadge] = createSignal(0)
   const [pinsOn, setPinsOn] = createSignal(true)
   const [composer, setComposer] = createSignal<ComposerState | undefined>()
-  const [showInbox, setShowInbox] = createSignal(false)
-  const [showIdeas, setShowIdeas] = createSignal(false)
+
+  const active = () => comments().filter((c) => c.status === 'queued' || c.status === 'running').length
+  const running = () => comments().some((c) => c.status === 'running')
 
   onMount(() => {
+    stashPage(pageUrl())
     void poll()
     const timer = setInterval(() => void poll(), 5000)
     onCleanup(() => clearInterval(timer))
@@ -47,16 +43,12 @@ export default function App(p: AppProps) {
     try {
       const { items } = (await p.api.call('list-comments')) as { items: Comment[] }
       setComments(items)
-      setBadge(items.filter((c) => c.status === 'queued' || c.status === 'running').length)
     } catch (err) {
       console.warn('[wrikka-vite-devtools] poll failed:', err)
     }
   }
 
-  // one panel at a time — opening any closes the others
   function openComposerFor(selection: Selection, prefill?: string): void {
-    setShowInbox(false)
-    setShowIdeas(false)
     setComposer({ selection, prefill })
   }
 
@@ -86,36 +78,18 @@ export default function App(p: AppProps) {
     })
   }
 
-  function onIdeas(): void {
-    setComposer(undefined)
-    setShowInbox(false)
-    setShowIdeas((v) => !v)
-  }
-
-  function onInbox(): void {
-    setComposer(undefined)
-    setShowIdeas(false)
-    setShowInbox((v) => !v)
-  }
-
-  function applyIdea(idea: Idea): void {
-    setShowIdeas(false)
-    openComposerFor(pageSelection(), ideaPrefill(idea))
-  }
-
   return (
     <>
       <Pins comments={comments()} visible={pinsOn()} />
-      <Toolbar
+      <Pill
         mode={mode()}
         onMode={setMode}
-        badge={badge()}
-        active={composer() ? 'comment' : showIdeas() ? 'ideas' : showInbox() ? 'inbox' : null}
+        active={active()}
+        running={running()}
+        composerOpen={composer() !== undefined}
         pinsOn={pinsOn()}
-        hub={p.hub}
+        hub={`${p.hub}?page=${encodeURIComponent(pageUrl())}`}
         onComment={onComment}
-        onIdeas={onIdeas}
-        onInbox={onInbox}
         onPins={() => setPinsOn((v) => !v)}
       />
       <Show when={composer()} keyed>
@@ -124,21 +98,13 @@ export default function App(p: AppProps) {
             <Composer
               api={p.api}
               selection={state.selection}
+              page={pageUrl()}
               prefill={state.prefill}
+              capture={capturePage}
               onClose={() => setComposer(undefined)}
             />
           </Panel>
         )}
-      </Show>
-      <Show when={showInbox()}>
-        <Panel title="Comments" onClose={() => setShowInbox(false)}>
-          <Inbox api={p.api} />
-        </Panel>
-      </Show>
-      <Show when={showIdeas()}>
-        <Panel title="Generate ideas" onClose={() => setShowIdeas(false)}>
-          <Ideas api={p.api} onApply={applyIdea} />
-        </Panel>
       </Show>
     </>
   )

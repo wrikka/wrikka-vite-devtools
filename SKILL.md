@@ -45,25 +45,26 @@ export default defineConfig({
 ```
 
 Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|true|false`), `auth`,
-`build`, `quiet`, `overlay` (`false` drops the dock), `agent` (`{ driver: 'auto'|'claude'|'codex'|'opencode', autoRun }`),
+`build`, `quiet`, `overlay` (`false` drops the in-page pill; the hub Comments tab stays), `agent` (`{ driver: 'auto'|'claude'|'codex'|'opencode', autoRun }`),
 `skillsRoots` (extra harness skill dirs).
 
 ### 3. Verify after mounting
 
 - `http://localhost:<port>/__devframes/` — hub UI; every frame at `<base><id>/` must return 200
-- Overlay bar (Comment / Ideas / Inbox / Pins / **Panels**) loads on an app page; **Panels** links to
-  the hub, where the dock panels live — the bar never carries panel icons. In SSR apps (TanStack
+- Overlay pill (mode picker / Comment / Pins / **hub link** + badge) loads bottom-right on an app page;
+  it never mounts inside hub or dock documents (`src/overlay/hub.ts` → `isHubDocument`). The pill's hub
+  link opens the hub with the target page passed along. In SSR apps (TanStack
   Start / Solid
   Start / Nuxt / SvelteKit) the document is streamed and Vite's `transformIndexHtml` never runs —
   the dev-only `wrikka-vite-devtools:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
   instead (browser `Accept` must include `text/html`; no `content-length` on the response)
 - Hub dock icons are fetched at runtime from `api.iconify.design` by `@devframes/hub-ui`: offline or
-  a blocked request blanks every dock glyph, which is not fixable from a Kit package (`docks.register`
-  takes an icon *name*). Overlay glyphs are inline SVG and unaffected
+  a blocked request blanks the dock glyph. The in-page pill is immune (inline SVG); the dock icon comes
+  from the devframe `icon` field, which is a package-level choice, not something the page script controls
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
-- Hub frame inbox at `<base>wrikka-vite-devtools/` — the frame client (`src/client/`, UnoCSS-styled) shows
-  runner info, the submit form, live comment list (2 s poll), Re-run and streamed logs
+- Hub **Comments** tab at `<base>wrikka-vite-devtools/` — the panel SPA (`src/client/`, UnoCSS-styled)
+  has Inbox (2 s poll, Re-run, streamed logs), New comment (target form + composer), Ideas, Diagnostics
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
   `wrikka-vite-devtools_get-meta|scan-dir|list-comments|submit-comment|update-comment|delete-comment|run-agent|cancel-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
   plus `devframes_plugin_*`, `devframes_service_git_*`

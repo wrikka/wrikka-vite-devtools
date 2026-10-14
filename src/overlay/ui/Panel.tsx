@@ -5,7 +5,7 @@ export interface PanelProps extends ParentProps {
   onClose(): void
 }
 
-/** Dialog card anchored above the toolbar strip; Esc closes, focus is managed. */
+/** Dialog card anchored above the pill; Esc closes, focus is managed. */
 export default function Panel(p: PanelProps) {
   let node!: HTMLDivElement
   const previous = document.activeElement as HTMLElement | null
@@ -20,7 +20,7 @@ export default function Panel(p: PanelProps) {
       ref={node}
       role="dialog"
       aria-label={p.title}
-      class="fixed bottom-11 left-3 z-[2147483001] flex max-h-[min(70vh,560px)] w-[min(440px,calc(100vw-24px))] flex-col gap-2 overflow-auto rounded-xl border border-solid border-[#3a3d46] bg-[#17181d] p-3 text-[#e8e9ed] shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+      class="fixed bottom-14 right-3 z-[2147483001] flex max-h-[min(70vh,560px)] w-[min(440px,calc(100vw-24px))] flex-col gap-2 overflow-auto rounded-xl border border-solid border-[#3a3d46] bg-[#17181d] p-3 text-[#e8e9ed] shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation()

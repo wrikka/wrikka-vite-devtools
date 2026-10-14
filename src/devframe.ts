@@ -47,7 +47,7 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
 
   return defineDevframe({
     id: 'wrikka-vite-devtools',
-    name: 'Comment',
+    name: 'Comments',
     version: pkg.version,
     packageName: pkg.name,
     importMetaUrl: import.meta.url,
@@ -60,10 +60,8 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
       options.overlay === false
         ? undefined
         : {
-            // No bottom-left dock button — the in-page bar and the hub frame
-            // page are the UI; the entry stays registered so the page script
-            // still runs.
-            visibility: 'false',
+            // The dock entry doubles as the hub tab (clientAssets page) and the
+            // host for the in-page pill script.
             clientScript: { importFrom: overlayScript, eager: true },
           },
     async setup(ctx) {

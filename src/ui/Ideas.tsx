@@ -1,10 +1,14 @@
-import { For, createSignal } from 'solid-js'
-import { pageUrl, type Idea, type OverlayApi } from '../api'
+import { For, Show, createSignal } from 'solid-js'
+import type { Idea } from '../protocol'
+import type { PanelApi } from './api'
 import { btnPrimary, card, field, hint, row } from './bits'
 
 export interface IdeasProps {
-  api: OverlayApi
-  onApply(idea: Idea): void
+  api: PanelApi
+  /** Page the ideas are generated about — passed in so the hub can ask about the app page. */
+  page: string
+  /** Hub applies an idea through its own composer tab; omit to hide the button. */
+  onApply?(idea: Idea): void
 }
 
 const impactColors: Record<string, string> = {
@@ -25,7 +29,7 @@ export default function Ideas(p: IdeasProps) {
     setIdeas([])
     try {
       const res = await p.api.call('generate-ideas', {
-        page: pageUrl(),
+        page: p.page,
         focus: focus().trim() || undefined,
       })
       const list = res.ideas as Idea[]
@@ -33,7 +37,7 @@ export default function Ideas(p: IdeasProps) {
         setMsg(res.raw ? `no ideas parsed: ${String(res.raw).slice(0, 200)}` : 'no ideas returned')
         return
       }
-      setMsg(`${list.length} ideas from [${res.driver}] — apply one to open the composer`)
+      setMsg(`${list.length} ideas from [${res.driver}]`)
       setIdeas(list)
     } catch (err) {
       setMsg(`failed: ${String(err)}`)
@@ -74,9 +78,11 @@ export default function Ideas(p: IdeasProps) {
               <h3 class="m-0 text-[13px] font-medium">{idea.title}</h3>
             </div>
             <div class={hint}>{idea.detail}</div>
-            <button class={btnPrimary} onClick={() => p.onApply(idea)}>
-              Apply
-            </button>
+            <Show when={p.onApply}>
+              <button class={btnPrimary} onClick={() => p.onApply?.(idea)}>
+                Apply
+              </button>
+            </Show>
           </div>
         )}</For>
       </div>

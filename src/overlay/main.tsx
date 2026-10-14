@@ -2,10 +2,10 @@ import 'virtual:uno.css'
 import './overlay.css'
 import { render } from 'solid-js/web'
 import { connectDevframe } from 'devframe/client'
-import { hubUrl } from './hub'
+import { hubUrl, isHubDocument } from './hub'
 import { mountShadowHost } from './host'
 import App from './ui/App'
-import type { OverlayApi } from './api'
+import type { PanelApi } from '../ui/api'
 
 declare global {
   interface Window {
@@ -18,6 +18,7 @@ declare global {
 export default async function mountOverlay(): Promise<void> {
   if (window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__) return
   window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__ = true
+  if (isHubDocument(import.meta.url, location.pathname)) return
   await boot()
 }
 
@@ -29,7 +30,7 @@ async function boot(): Promise<void> {
     call(id: string, args?: unknown): Promise<any>
     streaming: { subscribe<T>(channel: string, id: string): AsyncIterable<T> }
   }
-  const api: OverlayApi = {
+  const api: PanelApi = {
     call: (id, args) => rpc.call(id, args),
     subscribe: (channel, id) => rpc.streaming.subscribe<string>(channel, id),
   }
