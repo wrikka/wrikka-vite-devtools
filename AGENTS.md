@@ -2,7 +2,7 @@
 name: wrikka-vite-devtools
 description: Vite plugin that mounts the Devframe hub, add-on frames, MCP endpoint and the comment→agent overlay
 related:
-  - follow-tool-devframe
+  - follow-tool-devfra
   - follow-tool-vite
   - follow-tool-vite-plugins
   - follow-tool-tsdown
@@ -22,7 +22,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 
 - In: `src/` (plugin, devframe definition, RPC, agent runner, overlay, frame SPA),
   `examples/playground/` (verification host), `README.md`, `USAGE.md`, `SKILL.md`, `.github/workflows/`
-- Out: upstream Devframe behaviour (`follow-tool-devframe`), host-app integration in other repos,
+- Out: upstream Devframe behaviour (`follow-tool-devfra`), host-app integration in other repos,
   `dist/` and `node_modules/` (generated)
 
 ## Execute
@@ -58,7 +58,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    Keep the two paths idempotent against each other when touching either.
 3. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script, UI in Solid + UnoCSS:
    `host.ts` (single shadow host + inlined `<style>`) → `picker.ts` (capture-phase highlight) →
-   `frameworks.ts` (element description) → `ui/` Solid components (`Toolbar` edge-attached bottom
+   `frameworks.ts` (element description) → `hub.ts` (hub base from the served module URL) →
+   `ui/` Solid components (`Toolbar` edge-attached bottom
    strip, `Panel` dialog shell, `Composer`, `Inbox`, `Ideas`, `Pins` annotations + bubbles,
    refreshed from the 5s poll) → `main.tsx` (`mountOverlay()` + guarded self-call). The picker
    stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.

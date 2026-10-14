@@ -9,6 +9,7 @@ export interface ToolbarProps {
   badge: number
   active: 'comment' | 'ideas' | 'inbox' | null
   pinsOn: boolean
+  hub: string
   onComment(): void
   onIdeas(): void
   onInbox(): void
@@ -50,15 +51,28 @@ export default function Toolbar(p: ToolbarProps) {
           </span>
         </button>
       </div>
-      <Show when={p.badge > 0}>
-        <span
-          class="ml-auto rounded-full bg-[#4c6ef5] px-2 text-[11px] font-semibold text-white"
-          aria-live="polite"
-          aria-label={`${p.badge} comments queued or running`}
+      <div class="ml-auto flex items-center gap-1.5">
+        <a
+          class={`${btn} inline-flex items-center gap-1 no-underline`}
+          href={p.hub}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open the devtools hub panels"
+          title="Open every devtools panel in the hub"
         >
-          {p.badge}
-        </span>
-      </Show>
+          <PanelsIcon />
+          <span>Panels</span>
+        </a>
+        <Show when={p.badge > 0}>
+          <span
+            class="rounded-full bg-[#4c6ef5] px-2 text-[11px] font-semibold text-white"
+            aria-live="polite"
+            aria-label={`${p.badge} comments queued or running`}
+          >
+            {p.badge}
+          </span>
+        </Show>
+      </div>
     </div>
   )
 }
@@ -113,6 +127,14 @@ function PinsIcon() {
   return (
     <svg {...svg}>
       <path d="M12 17v5M9 3h6l-1 6 3 3H7l3-3-1-6z" />
+    </svg>
+  )
+}
+function PanelsIcon() {
+  return (
+    <svg {...svg}>
+      <path d="M3 5h18v14H3z" />
+      <path d="M9 5v14M15 5v14" />
     </svg>
   )
 }

@@ -65,8 +65,8 @@ It requires `unocss` in the Vite config with its inspector enabled (the default;
 
 A Solid + UnoCSS toolbar (`#wrikka-vite-devtools-overlay-host`, shadow DOM, top-layer z-index) attached to the
 bottom edge of the viewport — full width, no floating pill — with a mode `<select>`, **Comment /
-Ideas / Inbox** buttons, a **Pins** toggle and a badge. Exactly one panel is open at a time; `Esc`
-closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
+Ideas / Inbox** buttons, a **Pins** toggle, a **Panels** link and a badge. Exactly one panel is open
+at a time; `Esc` closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
 
 1. `element` / `component` → capture-phase picker highlights the element under the cursor
    (`Esc` cancels); a click locks it. `component` additionally resolves the nearest framework
@@ -86,6 +86,12 @@ closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
    pin.
 6. The badge counts `queued + running` comments; pins, bubbles and badge refresh from the
    `list-comments` poll every 5s.
+7. **Panels** (right edge) → the devframe hub at `<hubBase>` in a new tab, for every dock panel
+   (UnoCSS, Vue, React, …) plus this frame's inbox. The bar is the only thing that lives in your
+   page; the panels live in the hub. `src/overlay/hub.ts` derives `<hubBase>` from the module URL
+   the hub served the bar from (`…/__page-script/index.mjs` → its parent mount, `…/wrikka-vite-devtools/`
+   stripped), falling back to `/__devframes/` — so a hub mounted under a base path still links
+   correctly. The glyph is an inline SVG: no Iconify request, works offline.
 
 Framework detection (`src/overlay/frameworks.ts`) reads, in order: React `__reactFiber$*` walk,
 Vue `__vueParentComponent`, Svelte `svelte-<hash>` class, Solid `_$*`/`$signal*` marks, then global
@@ -243,6 +249,8 @@ useWrikkaViteDevtools({ plugins: ['wrikka-vite-devtools'] })
 | Overlay bar missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
 | Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `wrikka-vite-devtools:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
 | Console: `exports no callable "default"` | the page-script module has no callable default — the dock executor calls `mod.default(hubContext)` |
+| Looking for panel buttons in the bar | they were never there: the bar carries Comment/Ideas/Pins/**Panels** only; every dock panel lives in the hub at `<hubBase>` — use **Panels** |
+| Hub dock icons blank | `@devframes/hub-ui` resolves `docks.register({ icon })` names at runtime from `api.iconify.design`; offline/blocked network ⇒ no glyphs. Not overridable from a Kit package — inline SVG only applies to the in-page overlay bar |
 | Ideas return `raw` only | the CLI answered in prose — `parseIdeas` needs `title — detail` / JSON-ish lines; refine the focus text |
 | Picker never highlights | the app stops `mousemove` at capture phase or an element overlays the whole page |
 | `DF8004` on `data-inspector` | already handled — the plugin re-keys the id (colons are not hub-mountable) |

@@ -2,6 +2,7 @@ import 'virtual:uno.css'
 import './overlay.css'
 import { render } from 'solid-js/web'
 import { connectDevframe } from 'devframe/client'
+import { hubUrl } from './hub'
 import { mountShadowHost } from './host'
 import App from './ui/App'
 import type { OverlayApi } from './api'
@@ -34,5 +35,5 @@ async function boot(): Promise<void> {
   }
 
   const root = mountShadowHost()
-  render(() => <App api={api} root={root} />, root)
+  render(() => <App api={api} root={root} hub={hubUrl(import.meta.url)} />, root)
 }

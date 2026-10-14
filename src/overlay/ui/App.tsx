@@ -12,6 +12,7 @@ import Pins from './Pins'
 export interface AppProps {
   api: OverlayApi
   root: ShadowRoot
+  hub: string
 }
 
 interface ComposerState {
@@ -111,6 +112,7 @@ export default function App(p: AppProps) {
         badge={badge()}
         active={composer() ? 'comment' : showIdeas() ? 'ideas' : showInbox() ? 'inbox' : null}
         pinsOn={pinsOn()}
+        hub={p.hub}
         onComment={onComment}
         onIdeas={onIdeas}
         onInbox={onInbox}

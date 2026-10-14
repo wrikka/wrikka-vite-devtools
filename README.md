@@ -68,6 +68,7 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 |:---:|---|---|---|---|
 | ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Edge-attached full-width bottom toolbar (Solid + UnoCSS, shadow DOM) with `element` / `component` / `page` pickers | Feedback lands on the exact node, not a screenshot | open any dev page |
 | ![n](https://api.iconify.design/mdi/map-marker-radius-outline.svg?color=%233949ab&width=16) | Pinned annotations | Numbered pins anchor to commented elements; click a pin for its bubble (body, status, agent result); **Pins** toggles them | see every open comment in its real page context | **Pins** button |
+| ![h](https://api.iconify.design/mdi/view-dashboard-outline.svg?color=%23607d8b&width=16) | Hub shortcut | **Panels** link on the right of the bar opens the hub (`<hubBase>`) in a new tab; the base is read from the URL the hub served the bar from, so a hub under a custom base still resolves | reach every dock panel (UnoCSS, Vue, React, …) without typing a path | **Panels** button |
 | ![r](https://api.iconify.design/mdi/robot.svg?color=%237b1fa2&width=16) | Agent auto-run | A submitted comment spawns claude / codex / opencode with the prompt on stdin | idea → edited code without leaving the browser | `agent: { autoRun: true }` |
 | ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>wrikka-vite-devtools/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>wrikka-vite-devtools/` |
 | ![s](https://api.iconify.design/mdi/server-network.svg?color=%23388e3c&width=16) | SSR injection | dev-only middleware patches the streamed HTML when `transformIndexHtml` never runs | works in TanStack Start / Nuxt / SvelteKit with no `index.html` | `overlay: true` (default) |
@@ -113,8 +114,8 @@ The shipped frame SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comment
 the active driver from `runner-info`, a submit form (kind / mode / cssPath / page / skills), the
 comment list polled every 2 s, a Re-run button per comment, and the live `agent-logs` stream
 under each running card. Comments created from the overlay, the frame form, or MCP all share one
-store. The frame has no dock-bar button — its entry points are the in-page overlay bar and the
-URL above.
+store. The frame has no dock-bar button — its entry points are the in-page overlay bar (**Panels**
+opens the hub) and the URL above.
 
 ```text
 +----------------------------------------------------------------+

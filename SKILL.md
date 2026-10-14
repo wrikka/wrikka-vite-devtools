@@ -51,10 +51,15 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 ### 3. Verify after mounting
 
 - `http://localhost:<port>/__devframes/` — hub UI; every frame at `<base><id>/` must return 200
-- Overlay bar (Comment / Ideas / Inbox) loads on an app page. In SSR apps (TanStack Start / Solid
+- Overlay bar (Comment / Ideas / Inbox / Pins / **Panels**) loads on an app page; **Panels** links to
+  the hub, where the dock panels live — the bar never carries panel icons. In SSR apps (TanStack
+  Start / Solid
   Start / Nuxt / SvelteKit) the document is streamed and Vite's `transformIndexHtml` never runs —
   the dev-only `wrikka-vite-devtools:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
   instead (browser `Accept` must include `text/html`; no `content-length` on the response)
+- Hub dock icons are fetched at runtime from `api.iconify.design` by `@devframes/hub-ui`: offline or
+  a blocked request blanks every dock glyph, which is not fixable from a Kit package (`docks.register`
+  takes an icon *name*). Overlay glyphs are inline SVG and unaffected
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
 - Hub frame inbox at `<base>wrikka-vite-devtools/` — the frame client (`src/client/`, UnoCSS-styled) shows
