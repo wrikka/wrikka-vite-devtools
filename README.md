@@ -75,7 +75,7 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 | ![k](https://api.iconify.design/mdi/lightning-bolt.svg?color=%23c2185b&width=16) | Skill picker | Attach harness skills (devin / claude / qoder global + project roots) to a comment | the agent follows your conventions | composer skill chips |
 | ![p](https://api.iconify.design/mdi/camera.svg?color=%23303f9f&width=16) | Page capture | PNG snapshot (html-to-image) stored under the hub dir and referenced in the comment | the agent can open the real visual context | "capture page" checkbox |
 | ![d](https://api.iconify.design/mdi/lightbulb-on.svg?color=%23ffa000&width=16) | Generate ideas | the agent proposes 6 cards (title / detail / impact); Apply prefills a comment | discover the next improvement while browsing | **Ideas** tab |
-| ![m](https://api.iconify.design/mdi/hexagon-multiple.svg?color=%23d32f2f&width=16) | Hub + add-ons + MCP | inspect, og, a11y, git, assets, terminals (opt-in data-inspector, code-server) and one aggregate MCP endpoint | one plugin wires the whole devtool + agent chain | `plugins: 'all'` |
+| ![m](https://api.iconify.design/mdi/hexagon-multiple.svg?color=%23d32f2f&width=16) | Hub + add-ons + MCP | inspect, og, a11y, git, assets, terminals (opt-in data-inspector, code-server, unocss) and one aggregate MCP endpoint | one plugin wires the whole devtool + agent chain | `plugins: 'all'` |
 
 ## Usage
 
@@ -96,7 +96,7 @@ useWrikkaViteDevtools({
 | api | description | options | default |
 |---|---|---|---|
 | `base` | hub mount path | any `/.../` path | `/__devframes/` |
-| `plugins` | which add-on frames to mount | keys \| `'all'` | all except `code-server` |
+| `plugins` | which add-on frames to mount | keys \| `'all'` | all except `data-inspector`, `code-server`, `unocss` |
 | `mcp` | aggregate MCP endpoint | `boolean \| 'auto'` | `'auto'` |
 | `auth` | hub OTP gate | `boolean` | hub gate on |
 | `agent.driver` | which CLI runs comments/ideas | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` |

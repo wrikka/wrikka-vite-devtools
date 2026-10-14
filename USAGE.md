@@ -35,7 +35,7 @@ export default defineConfig({
 | Option | Type | Default | Effect |
 |---|---|---|---|
 | `base` | `string` | `/__devframes/` | hub mount; each frame lives at `<base><id>/` |
-| `plugins` | `UseWrikkaViteDevtoolsPluginKey[] \| 'all'` | all add-ons except `code-server` | which frames to mount |
+| `plugins` | `UseWrikkaViteDevtoolsPluginKey[] \| 'all'` | all add-ons except `data-inspector`, `code-server`, `unocss` | which frames to mount |
 | `mcp` | `boolean \| 'auto'` | `'auto'` | aggregate MCP endpoint at `<base>__mcp` |
 | `auth` | `boolean` | hub gate | `false` closes the OTP gate — localhost single-user only |
 | `build` | `boolean` | off | bake the static hub into `vite build` output |
@@ -47,6 +47,19 @@ export default defineConfig({
 
 `defaultSkillRoots()` scans: `<devin>/skills` (AppData), `~/.claude/skills`, `~/.qoder/skills`,
 `./skills`, `./.claude/skills`, `./.devin/skills`. Unknown plugin keys throw at config load.
+
+### UnoCSS in the dock
+
+`unocss` is a **dock-only** key — it mounts no devframe. `@unocss/vite` serves its inspector as a
+standalone app at `/__unocss`, and its own devframe registers with Vite's devtools API, not the
+Devframe hub, so the hub never sees it. This key frames the already-served inspector instead:
+
+```ts
+useWrikkaViteDevtools({ plugins: ['inspect', 'git', 'unocss'] })
+```
+
+It requires `unocss` in the Vite config with its inspector enabled (the default;
+`inlineConfig.inspector: false` kills `/__unocss` and leaves a dead panel).
 
 ## 4. Overlay flow
 

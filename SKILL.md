@@ -3,7 +3,7 @@ name: use-wrikka-vite-devtools
 description: Mount the Devframe devtools hub (add-on set + MCP) and the comment→agent overlay into any Vite project with the `wrikka-vite-devtools` plugin
 argument-hint: "[vite-config-or-scope]"
 related:
-  - follow-tool-devframe
+  - follow-tool-devfra
   - follow-tool-vite-devtools
   - follow-tool-vite
   - follow-tool-vite-plugins
@@ -15,13 +15,13 @@ related:
 ## Goal
 
 Use the `wrikka-vite-devtools` Vite plugin to mount a Devframe hub with the add-on set (`inspect`, `og`,
-`a11y`, `git`, `assets`, `terminals`; opt-in: `data-inspector`, `code-server`), an in-app comment
+`a11y`, `git`, `assets`, `terminals`; opt-in: `data-inspector`, `code-server`, `unocss`), an in-app comment
 overlay that starts an agent CLI on submit, and an aggregate MCP endpoint at `<base>__mcp`.
 
 ## Scope
 
 - In: `src/` (plugin + devframe definition + RPC + overlay), `examples/playground/` (verification host)
-- Out: general Devframe docs — use `follow-tool-devframe`; full option/RPC reference → `USAGE.md`
+- Out: general Devframe docs — use `follow-tool-devfra`; full option/RPC reference → `USAGE.md`
 
 ## Execute
 
@@ -75,6 +75,7 @@ bun run typecheck
 ## Rules
 
 - Only pass `plugins: 'all'` when `@devframes/plugin-code-server` is installed (optional peer)
+- `unocss` is dock-only — it registers an iframe for `@unocss/vite`'s inspector at `/__unocss/`, it is not a devframe. UnoCSS's own devframe export goes to Vite's devtools API, never the hub, so without this key the inspector has no dock entry
 - `data-inspector` is re-keyed to id `data-inspector` by the plugin — its native id contains colons and is not hub-mountable (DF8004)
 - Services (`@devframes/service-{open,git,shiki}`) are self-provided by the plugins — never pass `services` into hub options
 - The overlay bundle must be ONE self-contained file (`vite.overlay.config.ts` builds the Solid/UnoCSS
