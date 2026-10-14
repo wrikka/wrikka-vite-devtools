@@ -1,4 +1,4 @@
-import { useDevfra } from 'use-devfra/vite'
+import { useDevfra } from 'devfra-plugins/vite'
 import { defineConfig } from 'vite'
 
 export default defineConfig({

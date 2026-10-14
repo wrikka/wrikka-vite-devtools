@@ -23,7 +23,7 @@ export default async function mountOverlay(): Promise<void> {
 await mountOverlay()
 
 async function boot(): Promise<void> {
-  const scope = (await connectDevframe()).scope('use-devfra')
+  const scope = (await connectDevframe()).scope('devfra-plugins')
   const rpc = scope.rpc as unknown as {
     call(id: string, args?: unknown): Promise<any>
     streaming: { subscribe<T>(channel: string, id: string): AsyncIterable<T> }

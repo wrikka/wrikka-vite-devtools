@@ -54,6 +54,14 @@ export class CommentStore {
     return comment
   }
 
+  delete(id: string): boolean {
+    const index = this.items.findIndex((c) => c.id === id)
+    if (index === -1) return false
+    this.items.splice(index, 1)
+    this.emit()
+    return true
+  }
+
   update(id: string, patch: Partial<Comment>): Comment | undefined {
     const index = this.items.findIndex((c) => c.id === id)
     if (index === -1) return undefined

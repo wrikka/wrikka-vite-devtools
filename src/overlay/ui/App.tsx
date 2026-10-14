@@ -48,7 +48,7 @@ export default function App(p: AppProps) {
       setComments(items)
       setBadge(items.filter((c) => c.status === 'queued' || c.status === 'running').length)
     } catch (err) {
-      console.warn('[use-devfra] poll failed:', err)
+      console.warn('[devfra-plugins] poll failed:', err)
     }
   }
 

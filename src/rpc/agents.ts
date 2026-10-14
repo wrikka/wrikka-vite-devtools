@@ -24,7 +24,15 @@ export interface AgentRpcDeps {
 
 export function createAgentRpc(deps: AgentRpcDeps) {
   const running = new Set<string>()
+  const controllers = new Map<string, AbortController>()
   const resolveDriver = (): AgentDriver | undefined => pickDriver(deps.preference)
+
+  function cancel(commentId: string): boolean {
+    const controller = controllers.get(commentId)
+    if (!controller) return false
+    controller.abort()
+    return true
+  }
 
   async function run(commentId: string): Promise<{ started: boolean; streamId?: string; reason?: string }> {
     if (running.has(commentId)) {
@@ -40,9 +48,12 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     }
 
     const streamId = `comment-${commentId}-${Date.now()}`
+    const controller = new AbortController()
     running.add(commentId)
+    controllers.set(commentId, controller)
     deps.store.update(commentId, { status: 'running', streamId, resultSummary: undefined })
     const stream = deps.channel.start({ id: streamId })
+    stream.signal.addEventListener('abort', () => controller.abort(), { once: true })
     stream.write(`[${driver}] working on comment ${commentId} in ${process.cwd()}\n`)
 
     void runOnce(driver, buildCommentPrompt(comment, { cwd: process.cwd(), driver }), {
@@ -54,22 +65,28 @@ export function createAgentRpc(deps: AgentRpcDeps) {
           /* stream closed by consumers — keep running */
         }
       },
-      signal: stream.signal,
+      signal: controller.signal,
       timeoutMs: 15 * 60_000,
     })
       .then((result) => {
-        stream.write(`\n[${driver}] exit ${result.exitCode ?? 'null'} ${result.ok ? 'ok' : 'FAILED'}\n`)
+        const cancelled = controller.signal.aborted
+        stream.write(`\n[${driver}] exit ${result.exitCode ?? 'null'} ${cancelled ? 'CANCELLED' : result.ok ? 'ok' : 'FAILED'}\n`)
         stream.close()
         deps.store.update(commentId, {
-          status: result.ok ? 'done' : 'failed',
-          resultSummary: (result.ok ? lastSummary(result.output) : result.error ?? lastSummary(result.output)).slice(0, 1000),
+          status: cancelled ? 'failed' : result.ok ? 'done' : 'failed',
+          resultSummary: cancelled
+            ? 'cancelled by user'
+            : (result.ok ? lastSummary(result.output) : result.error ?? lastSummary(result.output)).slice(0, 1000),
         })
       })
       .catch((err: unknown) => {
         stream.error(err)
         deps.store.update(commentId, { status: 'failed', resultSummary: String(err).slice(0, 500) })
       })
-      .finally(() => running.delete(commentId))
+      .finally(() => {
+        running.delete(commentId)
+        controllers.delete(commentId)
+      })
 
     return { started: true, streamId }
   }
@@ -82,6 +99,16 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     args: [z.object({ commentId: z.string() })],
     returns: z.object({ started: z.boolean(), streamId: z.string().optional(), reason: z.string().optional() }),
     handler: async ({ commentId }) => run(commentId),
+  })
+
+  const cancelAgentRpc = defineRpcFunction({
+    name: 'cancel-agent',
+    type: 'action',
+    jsonSerializable: true,
+    agent: { description: 'Abort the running agent CLI for a comment; marks it failed (cancelled by user)' },
+    args: [z.object({ commentId: z.string() })],
+    returns: z.object({ cancelled: z.boolean() }),
+    handler: async ({ commentId }) => ({ cancelled: cancel(commentId) }),
   })
 
   const runnerInfo = defineRpcFunction({
@@ -98,5 +125,5 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     }),
   })
 
-  return { runAgentRpc, runnerInfo, run }
+  return { runAgentRpc, cancelAgentRpc, runnerInfo, run, cancel }
 }

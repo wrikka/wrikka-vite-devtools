@@ -1,5 +1,5 @@
 ---
-name: use-devfra
+name: devfra-plugins
 description: Vite plugin that mounts the Devframe hub, add-on frames, MCP endpoint and the comment→agent overlay
 related:
   - follow-tool-devframe
@@ -13,7 +13,7 @@ related:
 
 ## Goal
 
-Ship and maintain `use-devfra` — one Vite plugin that gives any Vite app the Devframe devtools hub,
+Ship and maintain `devfra-plugins` — one Vite plugin that gives any Vite app the Devframe devtools hub,
 the add-on frames, an aggregate MCP endpoint, and an in-page comment overlay that hands work straight
 to an agent CLI. Agents must be able to follow this file end to end without guessing.
 
@@ -63,7 +63,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
-   and the MCP suffix (`use-devfra_submit-comment`). Never rename without updating `USAGE.md` §5.
+   and the MCP suffix (`devfra-plugins_submit-comment`). Never rename without updating `USAGE.md` §5.
 5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
    the devframe shared-state `comments` slice; agent output streams on the `agent-logs` channel.
 6. New option surface goes through `UseDevfraOptions` → `DevframeOptions`; keep both JSDoc'd, they
@@ -75,7 +75,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 2. `bun run playground`, then in the browser: pick an element → comment with a skill + capture →
    Inbox shows the run streaming → status flips to `done`/`failed`.
 3. `curl` the MCP endpoint with an `Origin` header and confirm `tools/list` contains every
-   `use-devfra_*` id from `USAGE.md` §5.
+   `devfra-plugins_*` id from `USAGE.md` §5.
 4. Agent e2e (real CLI runs) happens **only** in `examples/playground` — never point a comment run at
    another repo.
 
@@ -83,7 +83,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 
 1. `/git-commit-and-push` here → CI publishes a pkg.pr.new preview for the new sha.
 2. Consume it in the host app (e.g. buuyook):
-   `bun add -D use-devfra@https://pkg.pr.new/newkub/use-devfra@<sha>` and place `useDevfra()`
+   `bun add -D devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<sha>` and place `useDevfra()`
    **before** framework plugins in `vite.config.ts`, then restart the dev server.
 3. Update the parent `devin-skills` submodule pointer after the commit lands.
 

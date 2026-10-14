@@ -15,14 +15,16 @@ type IdeaDefs = ReturnType<typeof createIdeasRpc>
 declare module 'devframe' {
   interface DevframeRpcClientFunctions
     extends RpcDefinitionsToFunctionsWithNamespace<
-      'use-devfra',
+      'devfra-plugins',
       [
         typeof getMeta,
         typeof scanDir,
         CommentDefs['listComments'],
         CommentDefs['submitComment'],
         CommentDefs['updateComment'],
+        CommentDefs['deleteComment'],
         AgentDefs['runAgentRpc'],
+        AgentDefs['cancelAgentRpc'],
         AgentDefs['runnerInfo'],
         SkillDefs['listSkills'],
         CaptureDefs['saveCapture'],

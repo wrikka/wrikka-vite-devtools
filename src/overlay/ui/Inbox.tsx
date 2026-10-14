@@ -44,6 +44,16 @@ export default function Inbox(p: InboxProps) {
     void refresh()
   }
 
+  async function cancelRun(c: Comment): Promise<void> {
+    await p.api.call('cancel-agent', { commentId: c.id })
+    void refresh()
+  }
+
+  async function dismiss(c: Comment): Promise<void> {
+    await p.api.call('delete-comment', { id: c.id })
+    setItems((prev) => prev.filter((x) => x.id !== c.id))
+  }
+
   async function streamLogs(commentId: string, streamId: string): Promise<void> {
     setLogs((prev) => ({ ...prev, [commentId]: prev[commentId] ?? '' }))
     try {
@@ -79,13 +89,14 @@ export default function Inbox(p: InboxProps) {
         <Show when={cp.comment.resultSummary}>
           <div class={hint}>{`result: ${cp.comment.resultSummary}`}</div>
         </Show>
-        <button
-          class={btn}
-          disabled={cp.comment.status === 'running'}
-          onClick={() => void startRun(cp.comment)}
-        >
-          {cp.comment.status === 'running' ? 'Running…' : 'Re-run'}
-        </button>
+        <div class={row}>
+          <Show when={cp.comment.status === 'running'} fallback={
+            <button class={btn} onClick={() => void startRun(cp.comment)}>Re-run</button>
+          }>
+            <button class={btn} onClick={() => void cancelRun(cp.comment)}>Cancel</button>
+          </Show>
+          <button class={btn} onClick={() => void dismiss(cp.comment)}>Dismiss</button>
+        </div>
         <Show when={log() !== undefined}>
           <div
             ref={box}

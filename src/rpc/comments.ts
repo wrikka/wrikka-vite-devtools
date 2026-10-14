@@ -88,5 +88,15 @@ export function createCommentRpc(deps: CommentRpcDeps) {
     },
   })
 
-  return { listComments, submitComment, updateComment }
+  const deleteComment = defineRpcFunction({
+    name: 'delete-comment',
+    type: 'action',
+    jsonSerializable: true,
+    agent: { description: 'Remove a comment/idea from the store (dismiss it)' },
+    args: [z.object({ id: z.string() })],
+    returns: z.object({ deleted: z.boolean() }),
+    handler: async ({ id }) => ({ deleted: deps.store.delete(id) }),
+  })
+
+  return { listComments, submitComment, updateComment, deleteComment }
 }

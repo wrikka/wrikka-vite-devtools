@@ -1,6 +1,6 @@
 # USAGE
 
-`use-devfra` = one Vite plugin that mounts the Devframe hub, the add-on frames, and the
+`devfra-plugins` = one Vite plugin that mounts the Devframe hub, the add-on frames, and the
 comment→agent overlay. This file documents the real public surface, every RPC, and the MCP tools.
 
 ## 1. Install
@@ -8,14 +8,14 @@ comment→agent overlay. This file documents the real public surface, every RPC,
 Preview releases come from pkg.pr.new (the package is not on npm):
 
 ```bash
-bun add -D "use-devfra@https://pkg.pr.new/newkub/use-devfra@<ref>"
+bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
 ```
 
 In `vite.config.ts` the plugin must be listed **before** framework plugins that transform the
 HTML/SSR entry (e.g. `tanstackStart()`, `solid()`), so the hub middleware is installed first.
 
 ```ts
-import { useDevfra } from 'use-devfra/vite'
+import { useDevfra } from 'devfra-plugins/vite'
 
 export default defineConfig({
   plugins: [useDevfra({ auth: false }), solid(), tanstackStart()],
@@ -26,9 +26,9 @@ export default defineConfig({
 
 | Specifier | Gives |
 |---|---|
-| `use-devfra` | `useDevfra` (+ default), `devframeDefinition`, `createDevframeDefinition`, `defaultSkillRoots`, `getMeta`, `scanDir`, types |
-| `use-devfra/vite` | `useDevfra`, `UseDevfraOptions`, `UseDevfraPluginKey` |
-| `use-devfra/devframe` | the built devframe definition (default) + `createDevframeDefinition` |
+| `devfra-plugins` | `useDevfra` (+ default), `devframeDefinition`, `createDevframeDefinition`, `defaultSkillRoots`, `getMeta`, `scanDir`, types |
+| `devfra-plugins/vite` | `useDevfra`, `UseDevfraOptions`, `UseDevfraPluginKey` |
+| `devfra-plugins/devframe` | the built devframe definition (default) + `createDevframeDefinition` |
 
 ## 3. `useDevfra(options)`
 
@@ -43,7 +43,7 @@ export default defineConfig({
 | `skillsRoots` | `string[]` | `defaultSkillRoots()` | extra/override directories scanned by `list-skills` |
 | `agent.driver` | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` | which CLI drives comment runs and idea generation |
 | `agent.autoRun` | `boolean` | `true` | start the agent the moment a `kind: 'comment'` is submitted |
-| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>use-devfra/` |
+| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>devfra-plugins/` |
 
 `defaultSkillRoots()` scans: `<devin>/skills` (AppData), `~/.claude/skills`, `~/.qoder/skills`,
 `./skills`, `./.claude/skills`, `./.devin/skills`. Unknown plugin keys throw at config load.
@@ -81,7 +81,7 @@ markers (`__NUXT__`, `__NEXT_DATA__`, `__SVELTEKIT_*`, `__VUE__`, `__REACT_REFRE
 **How the bar gets into the page.** The hub injects `<script type="module" src="<base>embedded.js">`
 through Vite's `transformIndexHtml`, which only runs for file-backed `index.html` SPAs. SSR
 frameworks that render the document in JS and stream it (TanStack Start / Solid Start, Nuxt,
-SvelteKit) never hit that hook, so `use-devfra` also mounts a dev-only middleware
+SvelteKit) never hit that hook, so `devfra-plugins` also mounts a dev-only middleware
 (`src/ssr-inject.ts`) that patches the response stream and inserts the same tag before the first
 `</body>`. It holds back 6 bytes so a `</body>` split across chunks is not missed, skips responses
 that are not `text/html` or already carry `content-length`, and never double-injects when the hub's
@@ -89,7 +89,7 @@ own transform already ran. Disable all of it with `overlay: false`.
 
 ## 5. RPC reference
 
-All ids are namespaced `use-devfra` (`scope.rpc.call('list-comments')`, MCP `use-devfra_list-comments`).
+All ids are namespaced `devfra-plugins` (`scope.rpc.call('list-comments')`, MCP `devfra-plugins_list-comments`).
 
 | Id | Kind | Args | Returns |
 |---|---|---|---|
@@ -98,7 +98,9 @@ All ids are namespaced `use-devfra` (`scope.rpc.call('list-comments')`, MCP `use
 | `list-comments` | query | — | `{ items: Comment[] }` |
 | `submit-comment` | action | `{ body, page, kind?, selection, skills?, capturePath? }` | `Comment` |
 | `update-comment` | action | `{ id, status?, resultSummary? }` | `{ updated: boolean }` |
+| `delete-comment` | action | `{ id }` | `{ deleted: boolean }` |
 | `run-agent` | action | `{ commentId }` | `{ started, streamId?, reason? }` |
+| `cancel-agent` | action | `{ commentId }` | `{ cancelled: boolean }` |
 | `runner-info` | static | — | `{ preference, driver \| null, available[] }` |
 | `list-skills` | query | — | `{ skills: {name,description,path,root}[], roots }` |
 | `save-capture` | action | `{ dataUrl, page }` | `{ path, bytes }` |
@@ -120,7 +122,7 @@ Limits: body ≤8000 chars, ≤20 skills per comment, ideas run ≤5 min, commen
 ```ts
 import { connectDevframe } from 'devframe/client'
 
-const scope = (await connectDevframe()).scope('use-devfra')
+const scope = (await connectDevframe()).scope('devfra-plugins')
 const { items } = await scope.rpc.call('list-comments')
 const comment = await scope.rpc.call('submit-comment', {
   body: 'Move the filter row above the results',
@@ -135,7 +137,7 @@ const { streamId } = await scope.rpc.call('run-agent', { commentId: comment.id }
 Typed ids come from `src/client/typed-rpc.d.ts` (module augmentation of
 `DevframeRpcClientFunctions`), so `scope.rpc.call('submit-comment', …)` is checked in the frame SPA.
 
-The shipped frame SPA at `<base>use-devfra/` (built from `src/client/`) is a full inbox: it calls
+The shipped frame SPA at `<base>devfra-plugins/` (built from `src/client/`) is a full inbox: it calls
 `runner-info`, `list-skills` and `list-comments` (polled every 2 s), offers a submit form
 (kind / mode / cssPath / page / multi-select skills), Re-run per comment, and streams
 `agent-logs` into each card. It is styled with UnoCSS (`presetWind4` + variant-group and
@@ -152,7 +154,7 @@ The frame inbox is the complete agent console — no page overlay needed. Pin th
 useDevfra({ agent: { driver: 'opencode' } })
 ```
 
-1. Open `<base>use-devfra/` — the header comes from `runner-info`; `driver: opencode` confirms the
+1. Open `<base>devfra-plugins/` — the header comes from `runner-info`; `driver: opencode` confirms the
    pin, `available` lists every installed CLI (`'auto'` would pick the first of claude → codex →
    opencode).
 2. Submit with kind `comment` → `autoRun` immediately runs `opencode run` in the project cwd with
@@ -164,11 +166,14 @@ useDevfra({ agent: { driver: 'opencode' } })
    `agent-logs` stream (`comment-<id>-<ts>`).
 5. Kind `idea` never spawns on submit — `autoRun` only fires for `kind: 'comment'`, so ideas are
    safe for probing.
+6. **Cancel** (shown while a card is `running`) calls `cancel-agent`, aborts the child process, and
+   marks the comment `failed` with `resultSummary: cancelled by user`. **Dismiss** calls
+   `delete-comment` to remove the comment from the store.
 
 ## 7. MCP
 
 `POST <base>__mcp` (requires an `Origin` header matching the Vite server). `tools/list` aggregates
-every mounted frame: `use-devfra_*` (one per RPC above) plus `devframes_plugin_*` and
+every mounted frame: `devfra-plugins_*` (one per RPC above) plus `devframes_plugin_*` and
 `devframes_service_git_*`. Point any MCP client (Devin/Claude/Qoder) at the URL to let it read the
 inbox, submit comments, and start runs from outside the browser.
 
@@ -187,7 +192,7 @@ curl -s -X POST http://localhost:5199/__devframes/__mcp \
   -H 'Content-Type: application/json' -H 'Origin: http://localhost:5199' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
-        "name":"use-devfra_list-comments","arguments":{"arg0":{}}}}'
+        "name":"devfra-plugins_list-comments","arguments":{"arg0":{}}}}'
 ```
 
 A flat object instead of `{"arg0": …}` fails with `DF0043 … received an invalid argument at position 0`.
@@ -214,7 +219,7 @@ useDevfra({ agent: { driver: 'codex' }, skillsRoots: ['./.devin/skills', 'C:/me/
 useDevfra({ agent: { driver: 'opencode', autoRun: true }, overlay: false })
 
 // minimal mount — only the comment/agent frame
-useDevfra({ plugins: ['use-devfra'] })
+useDevfra({ plugins: ['devfra-plugins'] })
 ```
 
 ## 10. Troubleshooting
@@ -223,7 +228,7 @@ useDevfra({ plugins: ['use-devfra'] })
 |---|---|
 | `no agent CLI found` in a comment | no `claude`/`codex`/`opencode` on PATH — install one or pin `agent.driver` |
 | Overlay bar missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
-| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `use-devfra:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
+| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `devfra-plugins:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
 | Console: `exports no callable "default"` | the page-script module has no callable default — the dock executor calls `mod.default(hubContext)` |
 | Ideas return `raw` only | the CLI answered in prose — `parseIdeas` needs `title — detail` / JSON-ish lines; refine the focus text |
 | Picker never highlights | the app stops `mousemove` at capture phase or an element overlays the whole page |

@@ -1,4 +1,4 @@
-import { Show } from 'solid-js'
+import { Show, type JSX } from 'solid-js'
 import { btn, btnActive, row } from './bits'
 
 export type ToolbarMode = 'element' | 'component' | 'page'
@@ -35,16 +35,19 @@ export default function Toolbar(p: ToolbarProps) {
       </select>
       <span class="mx-1 h-5 w-px shrink-0 bg-[#3a3d46]" aria-hidden="true" />
       <div class={row}>
-        <Action label="Comment" on={p.active === 'comment'} onClick={p.onComment} title="Pick an element or comment on the page" />
-        <Action label="Ideas" on={p.active === 'ideas'} onClick={p.onIdeas} title="Generate improvement ideas" />
-        <Action label="Inbox" on={p.active === 'inbox'} onClick={p.onInbox} title="Open the comments inbox" />
+        <Action label="Comment" icon={<CommentIcon />} on={p.active === 'comment'} onClick={p.onComment} title="Pick an element or comment on the page" />
+        <Action label="Ideas" icon={<IdeasIcon />} on={p.active === 'ideas'} onClick={p.onIdeas} title="Generate improvement ideas" />
+        <Action label="Inbox" icon={<InboxIcon />} on={p.active === 'inbox'} onClick={p.onInbox} title="Open the comments inbox" />
         <button
           class={`${btn} ${p.pinsOn ? '' : 'opacity-40'}`}
           onClick={p.onPins}
           aria-label="Show or hide annotation pins"
           aria-pressed={!p.pinsOn}
         >
-          Pins
+          <span class="inline-flex items-center gap-1">
+            <PinsIcon />
+            <span>Pins</span>
+          </span>
         </button>
       </div>
       <Show when={p.badge > 0}>
@@ -60,10 +63,56 @@ export default function Toolbar(p: ToolbarProps) {
   )
 }
 
-function Action(p: { label: string; on: boolean; title: string; onClick(): void }) {
+function Action(p: { label: string; icon: JSX.Element; on: boolean; title: string; onClick(): void }) {
   return (
     <button class={`${btn} ${p.on ? btnActive : ''}`} onClick={p.onClick} aria-label={p.label} title={p.title}>
-      {p.label}
+      <span class="inline-flex items-center gap-1">
+        {p.icon}
+        <span>{p.label}</span>
+      </span>
     </button>
+  )
+}
+
+// Inline 14px stroke glyphs — no icon runtime, safe for the self-contained overlay bundle.
+const svg = {
+  width: 14,
+  height: 14,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': 2,
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round',
+  'aria-hidden': true,
+} as const
+
+function CommentIcon() {
+  return (
+    <svg {...svg}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}
+function IdeasIcon() {
+  return (
+    <svg {...svg}>
+      <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c1 1 1 2 1 3h6c0-1 0-2 1-3a7 7 0 0 0-4-12z" />
+    </svg>
+  )
+}
+function InboxIcon() {
+  return (
+    <svg {...svg}>
+      <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+      <path d="M5 5h14l3 7v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5z" />
+    </svg>
+  )
+}
+function PinsIcon() {
+  return (
+    <svg {...svg}>
+      <path d="M12 17v5M9 3h6l-1 6 3 3H7l3-3-1-6z" />
+    </svg>
   )
 }

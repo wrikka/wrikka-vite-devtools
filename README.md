@@ -1,6 +1,6 @@
 > ![Status](https://img.shields.io/badge/status-in_development-red)
 
-# use-devfra
+# devfra-plugins
 
 [Devframe](https://devfra.me) devtools hub with all add-ons plus an in-page comment→agent workflow
 as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get the hub at
@@ -10,7 +10,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 
 ```text
 +--------------------------------------------------------------------------+
-| use-devfra: comment -> agent lifecycle (input -> process -> output)      |
+| devfra-plugins: comment -> agent lifecycle (input -> process -> output)      |
 |                                                                          |
 |  1. PICK     overlay bar in any dev page: element | component | page     |
 |              (or type directly into the hub frame form)                  |
@@ -28,7 +28,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 1. Install — previews ship from pkg.pr.new (the package is not on npm):
 
    ```bash
-   bun add -D "use-devfra@https://pkg.pr.new/newkub/use-devfra@<ref>"
+   bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
    ```
 
 2. Add the plugin — it must come **before** framework plugins that transform the HTML/SSR entry
@@ -36,7 +36,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 
    ```ts
    // vite.config.ts
-   import { useDevfra } from 'use-devfra/vite'
+   import { useDevfra } from 'devfra-plugins/vite'
 
    export default defineConfig({
      plugins: [useDevfra({ auth: false }), solid(), tanstackStart()],
@@ -48,7 +48,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
    ```bash
    bun run dev
    # hub:        http://localhost:<port>/__devframes/
-   # frame:      http://localhost:<port>/__devframes/use-devfra/
+   # frame:      http://localhost:<port>/__devframes/devfra-plugins/
    # MCP:        POST http://localhost:<port>/__devframes/__mcp
    ```
 
@@ -69,7 +69,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 | ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Edge-attached full-width bottom toolbar (Solid + UnoCSS, shadow DOM) with `element` / `component` / `page` pickers | Feedback lands on the exact node, not a screenshot | open any dev page |
 | ![n](https://api.iconify.design/mdi/map-marker-radius-outline.svg?color=%233949ab&width=16) | Pinned annotations | Numbered pins anchor to commented elements; click a pin for its bubble (body, status, agent result); **Pins** toggles them | see every open comment in its real page context | **Pins** button |
 | ![r](https://api.iconify.design/mdi/robot.svg?color=%237b1fa2&width=16) | Agent auto-run | A submitted comment spawns claude / codex / opencode with the prompt on stdin | idea → edited code without leaving the browser | `agent: { autoRun: true }` |
-| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>use-devfra/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>use-devfra/` |
+| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>devfra-plugins/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>devfra-plugins/` |
 | ![s](https://api.iconify.design/mdi/server-network.svg?color=%23388e3c&width=16) | SSR injection | dev-only middleware patches the streamed HTML when `transformIndexHtml` never runs | works in TanStack Start / Nuxt / SvelteKit with no `index.html` | `overlay: true` (default) |
 | ![l](https://api.iconify.design/mdi/layers.svg?color=%23f57c00&width=16) | Framework aware | Detects Solid / Vue / React / Nuxt / Svelte from runtime marks | the resolved component name goes into the agent prompt | mode `component` |
 | ![k](https://api.iconify.design/mdi/lightning-bolt.svg?color=%23c2185b&width=16) | Skill picker | Attach harness skills (devin / claude / qoder global + project roots) to a comment | the agent follows your conventions | composer skill chips |
@@ -107,7 +107,7 @@ useDevfra({
 ### Usage via the hub frame (agent workflow)
 
 <details>
-<summary>Open <code>/__devframes/use-devfra/</code> and run the full comment → agent loop in the browser</summary>
+<summary>Open <code>/__devframes/devfra-plugins/</code> and run the full comment → agent loop in the browser</summary>
 
 The shipped frame SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comments client: it shows
 the active driver from `runner-info`, a submit form (kind / mode / cssPath / page / skills), the
@@ -118,7 +118,7 @@ URL above.
 
 ```text
 +----------------------------------------------------------------+
-|  /__devframes/use-devfra/                                      |
+|  /__devframes/devfra-plugins/                                      |
 |  runner: driver: opencode - installed: claude, codex, opencode |
 |  +-------------------------+  +------------------------------+ |
 |  | New comment             |  | Comments (poll every 2 s)    | |
@@ -161,7 +161,7 @@ useDevfra({ agent: { driver: 'opencode' } })
 ```ts
 import { connectDevframe } from 'devframe/client'
 
-const scope = (await connectDevframe()).scope('use-devfra')
+const scope = (await connectDevframe()).scope('devfra-plugins')
 const { items } = await scope.rpc.call('list-comments')
 const comment = await scope.rpc.call('submit-comment', {
   body: 'Move the filter row above the results',
@@ -179,8 +179,8 @@ for await (const chunk of scope.rpc.streaming.subscribe<string>('agent-logs', st
 | api | description | options | default |
 |---|---|---|---|
 | `get-meta` | project/cwd/frames meta | — | — |
-| `list-comments` / `submit-comment` / `update-comment` | comment store RPCs | see [`USAGE.md`](USAGE.md) §5 | — |
-| `run-agent` / `runner-info` | start a run / inspect drivers | `{ commentId }` / — | — |
+| `list-comments` / `submit-comment` / `update-comment` / `delete-comment` | comment store RPCs | see [`USAGE.md`](USAGE.md) §5 | — |
+| `run-agent` / `cancel-agent` / `runner-info` | start/cancel a run / inspect drivers | `{ commentId }` / `{ commentId }` / — | — |
 | `list-skills` | skills from all configured roots | — | — |
 | `save-capture` / `list-captures` | PNG snapshot storage | `{ dataUrl, page }` | — |
 | `generate-ideas` | agent-proposed idea cards | `{ page, focus? }` | — |
@@ -195,12 +195,12 @@ curl -s -X POST http://localhost:5199/__devframes/__mcp \
   -H 'Content-Type: application/json' -H 'Origin: http://localhost:5199' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
-        "name":"use-devfra_run-agent","arguments":{"arg0":{"commentId":"..."}}}}'
+        "name":"devfra-plugins_run-agent","arguments":{"arg0":{"commentId":"..."}}}}'
 ```
 
 | tool group | examples | notes |
 |---|---|---|
-| `use-devfra_*` | one per RPC above | args are **positional** — `{"arg0": {…}}` |
+| `devfra-plugins_*` | one per RPC above | args are **positional** — `{"arg0": {…}}` |
 | `devframes_plugin_*` | inspect, og, a11y, git… | only mounted frames appear |
 | `devframes_service_git_*` | git status/log helpers | service self-provided |
 

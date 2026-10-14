@@ -11,7 +11,7 @@ import { createDevframeDefinition, type DevframeOptions } from './devframe'
 import { createSsrInjectPlugin } from './ssr-inject'
 
 export type UseDevfraPluginKey =
-  | 'use-devfra'
+  | 'devfra-plugins'
   | 'inspect'
   | 'data-inspector'
   | 'og'
@@ -22,7 +22,7 @@ export type UseDevfraPluginKey =
   | 'code-server'
 
 const DEFAULT_PLUGINS: UseDevfraPluginKey[] = [
-  'use-devfra',
+  'devfra-plugins',
   'inspect',
   'og',
   'a11y',
@@ -40,7 +40,7 @@ const ALL_PLUGINS: UseDevfraPluginKey[] = [
 type Factory = (options: UseDevfraOptions) => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
 
 const factories: Record<UseDevfraPluginKey, Factory> = {
-  'use-devfra': (options) =>
+  'devfra-plugins': (options) =>
     createDevframeDefinition({
       skillsRoots: options.skillsRoots,
       agent: options.agent,
@@ -81,7 +81,7 @@ export interface UseDevfraOptions {
 export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
   const keys = options.plugins === 'all' ? ALL_PLUGINS : (options.plugins ?? DEFAULT_PLUGINS)
   const unknown = keys.filter((k) => !ALL_PLUGINS.includes(k))
-  if (unknown.length > 0) throw new Error(`[use-devfra] unknown plugin key(s): ${unknown.join(', ')}`)
+  if (unknown.length > 0) throw new Error(`[devfra-plugins] unknown plugin key(s): ${unknown.join(', ')}`)
   const devframes = keys.map((k) => {
     if (k === 'data-inspector') {
       // its devframe id is `devframes:plugin:data-inspector` — colons are not

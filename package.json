@@ -1,5 +1,5 @@
 {
-  "name": "use-devfra",
+  "name": "devfra-plugins",
   "version": "0.1.0",
   "type": "module",
   "description": "Devframe devtools hub as one Vite plugin — add-ons, services, MCP included",

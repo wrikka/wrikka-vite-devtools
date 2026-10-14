@@ -1,6 +1,6 @@
 ---
-name: use-devfra
-description: Mount the Devframe devtools hub (add-on set + MCP) and the comment→agent overlay into any Vite project with the `use-devfra` plugin
+name: devfra-plugins
+description: Mount the Devframe devtools hub (add-on set + MCP) and the comment→agent overlay into any Vite project with the `devfra-plugins` plugin
 argument-hint: "[vite-config-or-scope]"
 related:
   - follow-tool-devframe
@@ -13,7 +13,7 @@ related:
 
 ## Goal
 
-Use the `use-devfra` Vite plugin to mount a Devframe hub with the add-on set (`inspect`, `og`,
+Use the `devfra-plugins` Vite plugin to mount a Devframe hub with the add-on set (`inspect`, `og`,
 `a11y`, `git`, `assets`, `terminals`; opt-in: `data-inspector`, `code-server`), an in-app comment
 overlay that starts an agent CLI on submit, and an aggregate MCP endpoint at `<base>__mcp`.
 
@@ -29,13 +29,13 @@ overlay that starts an agent CLI on submit, and an aggregate MCP endpoint at `<b
 Preview releases come from pkg.pr.new (not published to npm):
 
 ```bash
-bun add -D "use-devfra@https://pkg.pr.new/newkub/use-devfra@<ref>"
+bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
 ```
 
 ### 2. Add to vite.config.ts
 
 ```ts
-import { useDevfra } from 'use-devfra/vite'
+import { useDevfra } from 'devfra-plugins/vite'
 
 export default defineConfig({
   // must come before framework plugins (solid/vue/react) so the overlay injects first
@@ -52,14 +52,14 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 - `http://localhost:<port>/__devframes/` — hub UI; every frame at `<base><id>/` must return 200
 - Overlay bar (Comment / Ideas / Inbox) loads on an app page. In SSR apps (TanStack Start / Solid
   Start / Nuxt / SvelteKit) the document is streamed and Vite's `transformIndexHtml` never runs —
-  the dev-only `use-devfra:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
+  the dev-only `devfra-plugins:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
   instead (browser `Accept` must include `text/html`; no `content-length` on the response)
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
-- Hub frame inbox at `<base>use-devfra/` — the frame client (`src/client/`, UnoCSS-styled) shows
+- Hub frame inbox at `<base>devfra-plugins/` — the frame client (`src/client/`, UnoCSS-styled) shows
   runner info, the submit form, live comment list (2 s poll), Re-run and streamed logs
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
-  `use-devfra_get-meta|scan-dir|list-comments|submit-comment|update-comment|run-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
+  `devfra-plugins_get-meta|scan-dir|list-comments|submit-comment|update-comment|delete-comment|run-agent|cancel-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
   plus `devframes_plugin_*`, `devframes_service_git_*`
 
 ### 4. Develop in this repo

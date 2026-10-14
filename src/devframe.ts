@@ -46,7 +46,7 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
   const autoRun = options.agent?.autoRun !== false
 
   return defineDevframe({
-    id: 'use-devfra',
+    id: 'devfra-plugins',
     name: 'Comment',
     version: pkg.version,
     packageName: pkg.name,
@@ -67,7 +67,7 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
             clientScript: { importFrom: overlayScript, eager: true },
           },
     async setup(ctx) {
-      const us = ctx.scope('use-devfra')
+      const us = ctx.scope('devfra-plugins')
       us.rpc.register(getMeta)
       us.rpc.register(scanDir)
 
@@ -96,7 +96,9 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
         comments.listComments,
         comments.submitComment,
         comments.updateComment,
+        comments.deleteComment,
         agents.runAgentRpc,
+        agents.cancelAgentRpc,
         agents.runnerInfo,
         skills.listSkills,
         capture.saveCapture,

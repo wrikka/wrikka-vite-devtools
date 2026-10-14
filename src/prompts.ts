@@ -19,7 +19,7 @@ export function selectionBlock(c: Comment): string {
 
 export function buildCommentPrompt(c: Comment, ctxInfo: PromptContext): string {
   const parts = [
-    `You are working in the project at ${ctxInfo.cwd} (started by the use-devfra comment overlay, driver: ${ctxInfo.driver}).`,
+    `You are working in the project at ${ctxInfo.cwd} (started by the devfra-plugins comment overlay, driver: ${ctxInfo.driver}).`,
     '',
     `## Request (page: ${c.page})`,
     c.body,

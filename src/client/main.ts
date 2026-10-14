@@ -1,6 +1,7 @@
 import 'virtual:uno.css'
 import { connectDevframe } from 'devframe/client'
-import { mountComments, type ClientApi } from './comments-panel'
+import { mountComments } from './comments-panel'
+import type { ClientApi } from './dom'
 
 const metaOut = document.querySelector<HTMLPreElement>('#meta-out')!
 const runnerInfo = document.querySelector<HTMLElement>('#runner-info')!
@@ -13,7 +14,7 @@ function render(target: HTMLElement, data: unknown) {
   target.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
 }
 
-const demo = (await connectDevframe()).scope('use-devfra')
+const demo = (await connectDevframe()).scope('devfra-plugins')
 const rpc = demo.rpc as unknown as {
   call(id: string, args?: unknown): Promise<any>
   streaming: { subscribe<T>(channel: string, id: string): AsyncIterable<T> }
