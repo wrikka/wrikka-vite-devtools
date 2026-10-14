@@ -110,9 +110,12 @@ useWrikkaViteDevtools({
 <summary>Open <code>/__devframes/wrikka-vite-devtools/</code> and run the full comment → agent loop in the browser</summary>
 
 The shipped panel SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comments client with four
-tabs: **Inbox** (comment list polled every 2 s, Re-run per comment, live `agent-logs` stream),
+tabs: **Inbox** (labelled `Inbox (n)` with the open count; comment list polled every 2 s, status chips
+plus a page filter and a `visible/total` counter, each card links its target page, Re-run per comment,
+live `agent-logs` stream),
 **New comment** (target form — page / mode / cssPath — plus the submit composer; the page field is
-prefilled from the pill link or the page the pill last stashed on this origin), **Ideas**, and
+prefilled from the pill link or the page the pill last stashed on this origin, and an unwritten body
+autosaves per page so a tab switch can't lose it), **Ideas**, and
 **Diagnostics** (`runner-info`: active driver + every installed CLI). Comments created from the pill,
 the panel form, or MCP all share one store. The panel is the hub **Comments** dock tab — the pill's
 hub link opens it, and the URL above works directly.

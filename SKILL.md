@@ -64,7 +64,8 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
 - Hub **Comments** tab at `<base>wrikka-vite-devtools/` — the panel SPA (`src/client/`, UnoCSS-styled)
-  has Inbox (2 s poll, Re-run, streamed logs), New comment (target form + composer), Ideas, Diagnostics
+  has Inbox (2 s poll, open-count in the tab label, status + page filters, `visible/total`, page link,
+  Re-run, streamed logs), New comment (target form + composer, per-page draft autosave), Ideas, Diagnostics
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
   `wrikka-vite-devtools_get-meta|scan-dir|list-comments|submit-comment|update-comment|delete-comment|run-agent|cancel-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
   plus `devframes_plugin_*`, `devframes_service_git_*`

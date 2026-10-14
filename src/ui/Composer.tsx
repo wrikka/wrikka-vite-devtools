@@ -1,6 +1,7 @@
-import { For, Show, createSignal, onMount } from 'solid-js'
+import { For, Show, createSignal, onCleanup, onMount } from 'solid-js'
 import type { Selection } from '../protocol'
 import type { PanelApi } from './api'
+import { readDraft, stashDraft } from './draft-stash'
 import { btn, btnPrimary, chip, chipOn, field, hint, row } from './bits'
 
 export interface ComposerProps {
@@ -23,19 +24,33 @@ function selectionHint(s: Selection): string {
 export default function Composer(p: ComposerProps) {
   let ta!: HTMLTextAreaElement
   let kind!: HTMLSelectElement
+  let save: ReturnType<typeof setTimeout> | undefined
   const [msg, setMsg] = createSignal('')
   const [busy, setBusy] = createSignal(false)
   const [attach, setAttach] = createSignal(false)
   const [skills, setSkills] = createSignal<{ name: string }[] | undefined>()
   const [chosen, setChosen] = createSignal<Set<string>>(new Set())
 
+  function remember(): void {
+    clearTimeout(save)
+    save = setTimeout(() => stashDraft(p.page, { body: ta.value, skills: [...chosen()] }), 300)
+  }
+
   onMount(() => {
     if (p.prefill) ta.value = p.prefill
+    else {
+      const draft = readDraft(p.page)
+      if (draft) {
+        ta.value = draft.body
+        setChosen(new Set(draft.skills))
+      }
+    }
     void p.api
       .call('list-skills', {})
       .then((res: { skills: { name: string }[] }) => setSkills(res.skills.slice(0, 30)))
       .catch(() => setSkills([]))
   })
+  onCleanup(() => clearTimeout(save))
 
   function toggleSkill(name: string): void {
     setChosen((prev) => {
@@ -44,6 +59,7 @@ export default function Composer(p: ComposerProps) {
       else next.add(name)
       return next
     })
+    remember()
   }
 
   async function submit(): Promise<void> {
@@ -71,6 +87,7 @@ export default function Composer(p: ComposerProps) {
         capturePath,
       })
       setMsg(kind.value === 'comment' ? 'submitted — agent starts automatically' : 'submitted')
+      stashDraft(p.page, { body: '', skills: [] })
       setTimeout(p.onClose, 1500)
     } catch (err) {
       setMsg(`failed: ${String(err)}`)
@@ -84,6 +101,7 @@ export default function Composer(p: ComposerProps) {
         ref={ta}
         class={`${field} min-h-16 resize-y`}
         placeholder="What should the agent change here? (Ctrl/Cmd+Enter to submit)"
+        onInput={remember}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault()

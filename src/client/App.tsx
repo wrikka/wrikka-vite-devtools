@@ -20,6 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function App(p: { api: PanelApi }) {
   const [tab, setTab] = createSignal<Tab>('inbox')
+  const [open, setOpen] = createSignal(0)
   const [page, setPage] = createSignal('')
   const [mode, setMode] = createSignal<Selection['mode']>('page')
   const [cssPath, setCssPath] = createSignal('')
@@ -50,14 +51,14 @@ export default function App(p: { api: PanelApi }) {
               aria-selected={tab() === t.id}
               onClick={() => setTab(t.id)}
             >
-              {t.label}
+              {t.id === 'inbox' && open() > 0 ? `${t.label} (${open()})` : t.label}
             </button>
           )}
         </For>
       </nav>
       <main class="flex-1 p-3">
         <Show when={tab() === 'inbox'}>
-          <Inbox api={p.api} />
+          <Inbox api={p.api} onOpenCount={setOpen} />
         </Show>
         <Show when={tab() === 'new'}>
           <div class="flex flex-col gap-3">

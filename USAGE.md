@@ -100,10 +100,17 @@ The same SPA is the hub **Comments** dock page (`<base>wrikka-vite-devtools/`), 
 (`role="tablist"`): **Inbox**, **New comment**, **Ideas**, **Diagnostics**.
 
 1. **Inbox** → list of comments (newest first, polled every 2 s) with status pill, selection, skills,
-   capture path and `resultSummary`; **Re-run** calls `run-agent` and streams logs live.
+   capture path and `resultSummary`; the tab label shows `Inbox (n)` for the comments still open (any
+   status but `done`); filter chips narrow by status, a `Filter by page` select appears once comments
+   cover more than one page, and a `visible/total` counter tracks the result. Each card links its
+   target page (`target="_blank"`) when the page is an `http(s)` url — anything else stays plain text.
+   **Re-run** calls `run-agent` and streams logs live.
 2. **New comment** → the target form (page url, mode, cssPath) then the page-agnostic composer. The
    page field is prefilled from the `?page=` link or, because the hub drops that query before it
    mounts the dock iframe, from the url the pill stashed on this origin (`src/ui/page-stash.ts`).
+   The body and the chosen skills autosave per page (debounced 300 ms) to
+   `wrikka-vite-devtools:draft:<page>` (`src/ui/draft-stash.ts`), so a tab switch that remounts the
+   iframe doesn't lose an unwritten comment; a successful submit clears it.
 3. **Ideas** → `generate-ideas` (optional focus text) renders selectable cards (title/detail/impact);
    **Apply** switches to **New comment** prefilled with `Implement: <title> — <detail>`.
 4. **Diagnostics** → `runner-info` (active driver + installed CLIs) and frame metadata.

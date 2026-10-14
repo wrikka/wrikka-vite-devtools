@@ -11,6 +11,7 @@ export const chip = 'cursor-pointer rounded-full border border-solid border-[#3a
 export const chipOn = 'border-[#4c6ef5] bg-[#4c6ef5] text-white'
 export const row = 'flex flex-wrap items-center gap-1.5'
 export const card = 'flex flex-col gap-1 rounded-lg border border-solid border-[#3a3d46] p-2'
+export const link = 'text-[#8fa6ff] underline underline-offset-2 hover:text-[#b3c3ff]'
 
 const statusColors: Record<string, string> = {
   queued: 'bg-[#5c5f2e]',

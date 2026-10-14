@@ -1,14 +1,26 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from './api'
-import { btn, card, chip, chipOn, hint, row, statusPill } from './bits'
+import { btn, card, chip, chipOn, hint, link, row, statusPill } from './bits'
 
 export interface InboxProps {
   api: PanelApi
+  /** Reports how many comments are still open (not `done`) so the tab label can show it. */
+  onOpenCount?(count: number): void
 }
 
 type Filter = 'all' | Comment['status']
 const FILTERS: Filter[] = ['all', 'queued', 'running', 'done', 'failed']
+
+/** Only a real web url may become a clickable target — never `javascript:` and friends. */
+function httpUrl(value: string): string | undefined {
+  try {
+    const u = new URL(value)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? value : undefined
+  } catch {
+    return undefined
+  }
+}
 
 function signature(items: Comment[]): string {
   return items.map((c) => `${c.id}:${c.status}:${c.body.length}:${c.resultSummary ?? ''}`).join('|')
@@ -17,12 +29,19 @@ function signature(items: Comment[]): string {
 export default function Inbox(p: InboxProps) {
   const [items, setItems] = createSignal<Comment[]>([])
   const [filter, setFilter] = createSignal<Filter>('all')
+  const [pageFilter, setPageFilter] = createSignal<string>('all')
   const [logs, setLogs] = createSignal<Record<string, string>>({})
 
   const sorted = createMemo(() => [...items()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
+  const pages = createMemo(() => [...new Set(items().map((c) => c.page))])
   const visible = createMemo(() =>
-    filter() === 'all' ? sorted() : sorted().filter((c) => c.status === filter()),
+    sorted().filter(
+      (c) =>
+        (filter() === 'all' || c.status === filter()) &&
+        (pageFilter() === 'all' || c.page === pageFilter()),
+    ),
   )
+  createEffect(() => p.onOpenCount?.(items().filter((c) => c.status !== 'done').length))
 
   async function refresh(): Promise<void> {
     try {
@@ -80,7 +99,22 @@ export default function Inbox(p: InboxProps) {
       <div class={card}>
         <span class={statusPill(cp.comment.status)}>{cp.comment.status}</span>
         <div>{cp.comment.body}</div>
-        <div class={hint}>{`${cp.comment.selection.mode} @ ${cp.comment.selection.cssPath} — ${cp.comment.page}`}</div>
+        <div class={hint}>
+          {`${cp.comment.selection.mode} @ ${cp.comment.selection.cssPath} — `}
+          <Show when={httpUrl(cp.comment.page)} fallback={<span>{cp.comment.page}</span>}>
+            {(url) => (
+              <a
+                class={`${link} break-all`}
+                href={url()}
+                target="_blank"
+                rel="noreferrer"
+                title="Open the target page"
+              >
+                {cp.comment.page}
+              </a>
+            )}
+          </Show>
+        </div>
         <Show when={cp.comment.skills.length > 0}>
           <div class={hint}>{`skills: ${cp.comment.skills.join(', ')}`}</div>
         </Show>
@@ -119,6 +153,20 @@ export default function Inbox(p: InboxProps) {
             {f}
           </button>
         )}</For>
+        <Show when={pages().length > 1}>
+          <select
+            class={btn}
+            aria-label="Filter by page"
+            value={pageFilter()}
+            onChange={(e) => setPageFilter(e.currentTarget.value)}
+          >
+            <option value="all">all pages</option>
+            <For each={pages()}>{(u) => <option value={u}>{u}</option>}</For>
+          </select>
+        </Show>
+        <Show when={items().length > 0}>
+          <span class={hint}>{`${visible().length}/${items().length}`}</span>
+        </Show>
       </div>
       <div class="flex flex-col gap-2">
         <For each={visible()}>{(c) => <CommentCard comment={c} />}</For>
