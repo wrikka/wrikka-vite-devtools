@@ -15,7 +15,7 @@ type IdeaDefs = ReturnType<typeof createIdeasRpc>
 declare module 'devframe' {
   interface DevframeRpcClientFunctions
     extends RpcDefinitionsToFunctionsWithNamespace<
-      'devfra-plugins',
+      'wrikka-vite-devtools',
       [
         typeof getMeta,
         typeof scanDir,

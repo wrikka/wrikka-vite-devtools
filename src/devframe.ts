@@ -14,7 +14,7 @@ import type { DriverPreference } from './agent-runner'
 const clientAssets = resolve(import.meta.dirname, 'client')
 const overlayScript = resolve(import.meta.dirname, 'overlay/index.mjs')
 
-export interface UseDevfraAgentOptions {
+export interface UseWrikkaViteDevtoolsAgentOptions {
   /** Which agent CLI to drive. `'auto'` picks the first installed of claude → codex → opencode. */
   driver?: DriverPreference
   /** Start the agent the moment a comment is submitted. Default true. */
@@ -24,7 +24,7 @@ export interface UseDevfraAgentOptions {
 export interface DevframeOptions {
   /** Directories scanned by `list-skills` (each holds `<skill>/SKILL.md`). */
   skillsRoots?: string[]
-  agent?: UseDevfraAgentOptions
+  agent?: UseWrikkaViteDevtoolsAgentOptions
   /** Inject the in-page comment overlay. Default true. */
   overlay?: boolean
 }
@@ -46,7 +46,7 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
   const autoRun = options.agent?.autoRun !== false
 
   return defineDevframe({
-    id: 'devfra-plugins',
+    id: 'wrikka-vite-devtools',
     name: 'Comment',
     version: pkg.version,
     packageName: pkg.name,
@@ -67,7 +67,7 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
             clientScript: { importFrom: overlayScript, eager: true },
           },
     async setup(ctx) {
-      const us = ctx.scope('devfra-plugins')
+      const us = ctx.scope('wrikka-vite-devtools')
       us.rpc.register(getMeta)
       us.rpc.register(scanDir)
 

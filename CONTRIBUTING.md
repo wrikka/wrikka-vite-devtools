@@ -26,7 +26,7 @@ Rebuilding `build:pkg` after the others deletes `dist/client`, so always finish 
 bun run playground   # build + serve at http://localhost:5199
 ```
 
-`examples/playground/vite.config.ts` imports `devfra-plugins/vite` from the **built** `dist`, not from
+`examples/playground/vite.config.ts` imports `wrikka-vite-devtools/vite` from the **built** `dist`, not from
 `src`. After any source edit, rebuild before checking behavior in the browser.
 
 ## Bundling constraints

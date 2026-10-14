@@ -1,6 +1,6 @@
 import { overlayCss } from './css'
 
-const HOST_ID = 'devfra-overlay-host'
+const HOST_ID = 'wrikka-vite-devtools-overlay-host'
 
 /** One shadow host per page; the inlined stylesheet lives inside the root. */
 export function mountShadowHost(): ShadowRoot {

@@ -16,7 +16,7 @@ const HOLD = CLOSE.length - 1
 export function createSsrInjectPlugin(base = '/__devframes/'): Plugin {
   const embedSrc = `${base.endsWith('/') ? base : `${base}/`}embedded.js`
   return {
-    name: 'devfra-plugins:ssr-inject',
+    name: 'wrikka-vite-devtools:ssr-inject',
     enforce: 'pre',
     apply: 'serve',
     configureServer(server) {

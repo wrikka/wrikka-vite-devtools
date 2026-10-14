@@ -14,7 +14,7 @@ function render(target: HTMLElement, data: unknown) {
   target.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
 }
 
-const demo = (await connectDevframe()).scope('devfra-plugins')
+const demo = (await connectDevframe()).scope('wrikka-vite-devtools')
 const rpc = demo.rpc as unknown as {
   call(id: string, args?: unknown): Promise<any>
   streaming: { subscribe<T>(channel: string, id: string): AsyncIterable<T> }

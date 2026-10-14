@@ -1,6 +1,6 @@
-import { useDevfra } from 'devfra-plugins/vite'
+import { useWrikkaViteDevtools } from 'wrikka-vite-devtools/vite'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [useDevfra({ plugins: 'all', auth: false })],
+  plugins: [useWrikkaViteDevtools({ plugins: 'all', auth: false })],
 })

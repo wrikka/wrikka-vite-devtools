@@ -10,5 +10,5 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  external: [/^node:/, 'devframe', /^devframe\//, 'zod', 'vite', /^@devframes\//, 'devfra-plugins'],
+  external: [/^node:/, 'devframe', /^devframe\//, 'zod', 'vite', /^@devframes\//, 'wrikka-vite-devtools'],
 })

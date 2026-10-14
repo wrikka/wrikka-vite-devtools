@@ -1,5 +1,5 @@
 ---
-name: devfra-plugins
+name: wrikka-vite-devtools
 description: Vite plugin that mounts the Devframe hub, add-on frames, MCP endpoint and the comment→agent overlay
 related:
   - follow-tool-devframe
@@ -9,11 +9,12 @@ related:
   - follow-lib-zod
   - follow-tool-pkg-new
   - git-commit-and-push
+  - follow-tool-vite-devtools
 ---
 
 ## Goal
 
-Ship and maintain `devfra-plugins` — one Vite plugin that gives any Vite app the Devframe devtools hub,
+Ship and maintain `wrikka-vite-devtools` — one Vite plugin that gives any Vite app the Devframe devtools hub,
 the add-on frames, an aggregate MCP endpoint, and an in-page comment overlay that hands work straight
 to an agent CLI. Agents must be able to follow this file end to end without guessing.
 
@@ -63,10 +64,10 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
-   and the MCP suffix (`devfra-plugins_submit-comment`). Never rename without updating `USAGE.md` §5.
+   and the MCP suffix (`wrikka-vite-devtools_submit-comment`). Never rename without updating `USAGE.md` §5.
 5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
    the devframe shared-state `comments` slice; agent output streams on the `agent-logs` channel.
-6. New option surface goes through `UseDevfraOptions` → `DevframeOptions`; keep both JSDoc'd, they
+6. New option surface goes through `UseWrikkaViteDevtoolsOptions` → `DevframeOptions`; keep both JSDoc'd, they
    are copied into `README.md` / `USAGE.md` tables.
 
 ### 4. Verify A Change
@@ -75,7 +76,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 2. `bun run playground`, then in the browser: pick an element → comment with a skill + capture →
    Inbox shows the run streaming → status flips to `done`/`failed`.
 3. `curl` the MCP endpoint with an `Origin` header and confirm `tools/list` contains every
-   `devfra-plugins_*` id from `USAGE.md` §5.
+   `wrikka-vite-devtools_*` id from `USAGE.md` §5.
 4. Agent e2e (real CLI runs) happens **only** in `examples/playground` — never point a comment run at
    another repo.
 
@@ -83,7 +84,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 
 1. `/git-commit-and-push` here → CI publishes a pkg.pr.new preview for the new sha.
 2. Consume it in the host app (e.g. buuyook):
-   `bun add -D devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<sha>` and place `useDevfra()`
+   `bun add -D wrikka-vite-devtools@https://pkg.pr.new/wrikka/wrikka-vite-devtools@<sha>` and place `useWrikkaViteDevtools()`
    **before** framework plugins in `vite.config.ts`, then restart the dev server.
 3. Update the parent `devin-skills` submodule pointer after the commit lands.
 
@@ -108,7 +109,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   (the host page must never be reset).
 - The dock executor imports that URL and calls `mod[importName ?? 'default']`, so
   `src/overlay/main.tsx` must export a **callable default**; it also self-calls, and both paths
-  share the `window.__DEVFRA_OVERLAY__` guard. A side-effect-only module logs
+  share the `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__` guard. A side-effect-only module logs
   `exports no callable "default"`.
 - `tsdown` `clean: true` deletes `dist/` — the `build` script order is load-bearing; never add a
   script that builds `client` before `pkg`.

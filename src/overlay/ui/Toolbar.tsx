@@ -20,9 +20,9 @@ export default function Toolbar(p: ToolbarProps) {
     <div
       class="fixed inset-x-0 bottom-0 z-[2147483000] flex h-10 items-center gap-2 border-t border-solid border-[#3a3d46] bg-[#17181d] px-3 select-none"
       role="toolbar"
-      aria-label="Devfra comment toolbar"
+      aria-label="Wrikka devtools comment toolbar"
     >
-      <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9aa0ab]">devfra</span>
+      <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9aa0ab]">wrikka</span>
       <select
         class={`${btn}`}
         aria-label="Comment target mode"

@@ -1,9 +1,10 @@
 ---
-name: devfra-plugins
-description: Mount the Devframe devtools hub (add-on set + MCP) and the comment→agent overlay into any Vite project with the `devfra-plugins` plugin
+name: use-wrikka-vite-devtools
+description: Mount the Devframe devtools hub (add-on set + MCP) and the comment→agent overlay into any Vite project with the `wrikka-vite-devtools` plugin
 argument-hint: "[vite-config-or-scope]"
 related:
   - follow-tool-devframe
+  - follow-tool-vite-devtools
   - follow-tool-vite
   - follow-tool-vite-plugins
   - follow-tool-tsdown
@@ -13,7 +14,7 @@ related:
 
 ## Goal
 
-Use the `devfra-plugins` Vite plugin to mount a Devframe hub with the add-on set (`inspect`, `og`,
+Use the `wrikka-vite-devtools` Vite plugin to mount a Devframe hub with the add-on set (`inspect`, `og`,
 `a11y`, `git`, `assets`, `terminals`; opt-in: `data-inspector`, `code-server`), an in-app comment
 overlay that starts an agent CLI on submit, and an aggregate MCP endpoint at `<base>__mcp`.
 
@@ -29,17 +30,17 @@ overlay that starts an agent CLI on submit, and an aggregate MCP endpoint at `<b
 Preview releases come from pkg.pr.new (not published to npm):
 
 ```bash
-bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
+bun add -D "wrikka-vite-devtools@https://pkg.pr.new/wrikka/wrikka-vite-devtools@<ref>"
 ```
 
 ### 2. Add to vite.config.ts
 
 ```ts
-import { useDevfra } from 'devfra-plugins/vite'
+import { useWrikkaViteDevtools } from 'wrikka-vite-devtools/vite'
 
 export default defineConfig({
   // must come before framework plugins (solid/vue/react) so the overlay injects first
-  plugins: [useDevfra()],
+  plugins: [useWrikkaViteDevtools()],
 })
 ```
 
@@ -52,14 +53,14 @@ Options: `base` (`/__devframes/`), `plugins` (keys or `'all'`), `mcp` (`'auto'|t
 - `http://localhost:<port>/__devframes/` — hub UI; every frame at `<base><id>/` must return 200
 - Overlay bar (Comment / Ideas / Inbox) loads on an app page. In SSR apps (TanStack Start / Solid
   Start / Nuxt / SvelteKit) the document is streamed and Vite's `transformIndexHtml` never runs —
-  the dev-only `devfra-plugins:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
+  the dev-only `wrikka-vite-devtools:ssr-inject` middleware inserts `<base>embedded.js` before `</body>`
   instead (browser `Accept` must include `text/html`; no `content-length` on the response)
 - pick element → submit → status flips
   `queued` → `running` → `done`; logs stream on channel `agent-logs`
-- Hub frame inbox at `<base>devfra-plugins/` — the frame client (`src/client/`, UnoCSS-styled) shows
+- Hub frame inbox at `<base>wrikka-vite-devtools/` — the frame client (`src/client/`, UnoCSS-styled) shows
   runner info, the submit form, live comment list (2 s poll), Re-run and streamed logs
 - MCP: `POST <base>__mcp` with an `Origin` header matching the Vite server; `tools/list` aggregates
-  `devfra-plugins_get-meta|scan-dir|list-comments|submit-comment|update-comment|delete-comment|run-agent|cancel-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
+  `wrikka-vite-devtools_get-meta|scan-dir|list-comments|submit-comment|update-comment|delete-comment|run-agent|cancel-agent|runner-info|list-skills|save-capture|list-captures|generate-ideas`
   plus `devframes_plugin_*`, `devframes_service_git_*`
 
 ### 4. Develop in this repo
@@ -83,7 +84,7 @@ bun run typecheck
   never emit `inlineDynamicImports`
 - The dock executor calls the page-script module's `default`, so the overlay entry
   (`src/overlay/main.tsx`) must export a callable `default` (guarded by
-  `window.__DEVFRA_OVERLAY__`); a side-effect-only module logs `exports no callable "default"`
+  `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__`); a side-effect-only module logs `exports no callable "default"`
 - MCP `tools/call` arguments are positional — a single-object RPC signature arrives as `{"arg0": {…}}`;
   a flat object fails with `DF0043`
 - Agent runs are driven from `process.cwd()` of the dev server — e2e agent checks live in `examples/playground` only

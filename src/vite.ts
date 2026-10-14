@@ -10,8 +10,8 @@ import { createTerminalsDevframe } from '@devframes/plugin-terminals'
 import { createDevframeDefinition, type DevframeOptions } from './devframe'
 import { createSsrInjectPlugin } from './ssr-inject'
 
-export type UseDevfraPluginKey =
-  | 'devfra-plugins'
+export type UseWrikkaViteDevtoolsPluginKey =
+  | 'wrikka-vite-devtools'
   | 'inspect'
   | 'data-inspector'
   | 'og'
@@ -21,8 +21,8 @@ export type UseDevfraPluginKey =
   | 'terminals'
   | 'code-server'
 
-const DEFAULT_PLUGINS: UseDevfraPluginKey[] = [
-  'devfra-plugins',
+const DEFAULT_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
+  'wrikka-vite-devtools',
   'inspect',
   'og',
   'a11y',
@@ -31,16 +31,16 @@ const DEFAULT_PLUGINS: UseDevfraPluginKey[] = [
   'terminals',
 ]
 
-const ALL_PLUGINS: UseDevfraPluginKey[] = [
+const ALL_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
   ...DEFAULT_PLUGINS,
   'data-inspector',
   'code-server',
 ]
 
-type Factory = (options: UseDevfraOptions) => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
+type Factory = (options: UseWrikkaViteDevtoolsOptions) => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
 
-const factories: Record<UseDevfraPluginKey, Factory> = {
-  'devfra-plugins': (options) =>
+const factories: Record<UseWrikkaViteDevtoolsPluginKey, Factory> = {
+  'wrikka-vite-devtools': (options) =>
     createDevframeDefinition({
       skillsRoots: options.skillsRoots,
       agent: options.agent,
@@ -57,11 +57,11 @@ const factories: Record<UseDevfraPluginKey, Factory> = {
   'code-server': () => import('@devframes/plugin-code-server').then((m) => m.default()),
 }
 
-export interface UseDevfraOptions {
+export interface UseWrikkaViteDevtoolsOptions {
   /** Mount base, default `/__devframes/` — frames live at `<base><id>/`. */
   base?: string
   /** Plugin set to mount. Defaults to every add-on except code-server; `'all'` includes it. */
-  plugins?: UseDevfraPluginKey[] | 'all'
+  plugins?: UseWrikkaViteDevtoolsPluginKey[] | 'all'
   /** Aggregate MCP endpoint at `<base>__mcp`. Default `'auto'`. */
   mcp?: boolean | 'auto'
   /** `false` disables the OTP gate (localhost single-user only). Default: hub gate. */
@@ -78,10 +78,10 @@ export interface UseDevfraOptions {
   overlay?: boolean
 }
 
-export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
+export function useWrikkaViteDevtools(options: UseWrikkaViteDevtoolsOptions = {}): Plugin[] {
   const keys = options.plugins === 'all' ? ALL_PLUGINS : (options.plugins ?? DEFAULT_PLUGINS)
   const unknown = keys.filter((k) => !ALL_PLUGINS.includes(k))
-  if (unknown.length > 0) throw new Error(`[devfra-plugins] unknown plugin key(s): ${unknown.join(', ')}`)
+  if (unknown.length > 0) throw new Error(`[wrikka-vite-devtools] unknown plugin key(s): ${unknown.join(', ')}`)
   const devframes = keys.map((k) => {
     if (k === 'data-inspector') {
       // its devframe id is `devframes:plugin:data-inspector` — colons are not
@@ -109,4 +109,4 @@ export function useDevfra(options: UseDevfraOptions = {}): Plugin[] {
   ]
 }
 
-export default useDevfra
+export default useWrikkaViteDevtools

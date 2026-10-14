@@ -1,6 +1,6 @@
 # USAGE
 
-`devfra-plugins` = one Vite plugin that mounts the Devframe hub, the add-on frames, and the
+`wrikka-vite-devtools` = one Vite plugin that mounts the Devframe hub, the add-on frames, and the
 comment→agent overlay. This file documents the real public surface, every RPC, and the MCP tools.
 
 ## 1. Install
@@ -8,17 +8,17 @@ comment→agent overlay. This file documents the real public surface, every RPC,
 Preview releases come from pkg.pr.new (the package is not on npm):
 
 ```bash
-bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
+bun add -D "wrikka-vite-devtools@https://pkg.pr.new/wrikka/wrikka-vite-devtools@<ref>"
 ```
 
 In `vite.config.ts` the plugin must be listed **before** framework plugins that transform the
 HTML/SSR entry (e.g. `tanstackStart()`, `solid()`), so the hub middleware is installed first.
 
 ```ts
-import { useDevfra } from 'devfra-plugins/vite'
+import { useWrikkaViteDevtools } from 'wrikka-vite-devtools/vite'
 
 export default defineConfig({
-  plugins: [useDevfra({ auth: false }), solid(), tanstackStart()],
+  plugins: [useWrikkaViteDevtools({ auth: false }), solid(), tanstackStart()],
 })
 ```
 
@@ -26,16 +26,16 @@ export default defineConfig({
 
 | Specifier | Gives |
 |---|---|
-| `devfra-plugins` | `useDevfra` (+ default), `devframeDefinition`, `createDevframeDefinition`, `defaultSkillRoots`, `getMeta`, `scanDir`, types |
-| `devfra-plugins/vite` | `useDevfra`, `UseDevfraOptions`, `UseDevfraPluginKey` |
-| `devfra-plugins/devframe` | the built devframe definition (default) + `createDevframeDefinition` |
+| `wrikka-vite-devtools` | `useWrikkaViteDevtools` (+ default), `devframeDefinition`, `createDevframeDefinition`, `defaultSkillRoots`, `getMeta`, `scanDir`, types |
+| `wrikka-vite-devtools/vite` | `useWrikkaViteDevtools`, `UseWrikkaViteDevtoolsOptions`, `UseWrikkaViteDevtoolsPluginKey` |
+| `wrikka-vite-devtools/devframe` | the built devframe definition (default) + `createDevframeDefinition` |
 
-## 3. `useDevfra(options)`
+## 3. `useWrikkaViteDevtools(options)`
 
 | Option | Type | Default | Effect |
 |---|---|---|---|
 | `base` | `string` | `/__devframes/` | hub mount; each frame lives at `<base><id>/` |
-| `plugins` | `UseDevfraPluginKey[] \| 'all'` | all add-ons except `code-server` | which frames to mount |
+| `plugins` | `UseWrikkaViteDevtoolsPluginKey[] \| 'all'` | all add-ons except `code-server` | which frames to mount |
 | `mcp` | `boolean \| 'auto'` | `'auto'` | aggregate MCP endpoint at `<base>__mcp` |
 | `auth` | `boolean` | hub gate | `false` closes the OTP gate — localhost single-user only |
 | `build` | `boolean` | off | bake the static hub into `vite build` output |
@@ -43,14 +43,14 @@ export default defineConfig({
 | `skillsRoots` | `string[]` | `defaultSkillRoots()` | extra/override directories scanned by `list-skills` |
 | `agent.driver` | `'auto' \| 'claude' \| 'codex' \| 'opencode'` | `'auto'` | which CLI drives comment runs and idea generation |
 | `agent.autoRun` | `boolean` | `true` | start the agent the moment a `kind: 'comment'` is submitted |
-| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>devfra-plugins/` |
+| `overlay` | `boolean` | `true` | `false` drops the page-script (no in-page comment bar); the Comment frame itself has no dock button — its entry points are the bar and `<base>wrikka-vite-devtools/` |
 
 `defaultSkillRoots()` scans: `<devin>/skills` (AppData), `~/.claude/skills`, `~/.qoder/skills`,
 `./skills`, `./.claude/skills`, `./.devin/skills`. Unknown plugin keys throw at config load.
 
 ## 4. Overlay flow
 
-A Solid + UnoCSS toolbar (`#devfra-overlay-host`, shadow DOM, top-layer z-index) attached to the
+A Solid + UnoCSS toolbar (`#wrikka-vite-devtools-overlay-host`, shadow DOM, top-layer z-index) attached to the
 bottom edge of the viewport — full width, no floating pill — with a mode `<select>`, **Comment /
 Ideas / Inbox** buttons, a **Pins** toggle and a badge. Exactly one panel is open at a time; `Esc`
 closes it; `Ctrl`/`Cmd`+`Enter` submits the composer.
@@ -81,7 +81,7 @@ markers (`__NUXT__`, `__NEXT_DATA__`, `__SVELTEKIT_*`, `__VUE__`, `__REACT_REFRE
 **How the bar gets into the page.** The hub injects `<script type="module" src="<base>embedded.js">`
 through Vite's `transformIndexHtml`, which only runs for file-backed `index.html` SPAs. SSR
 frameworks that render the document in JS and stream it (TanStack Start / Solid Start, Nuxt,
-SvelteKit) never hit that hook, so `devfra-plugins` also mounts a dev-only middleware
+SvelteKit) never hit that hook, so `wrikka-vite-devtools` also mounts a dev-only middleware
 (`src/ssr-inject.ts`) that patches the response stream and inserts the same tag before the first
 `</body>`. It holds back 6 bytes so a `</body>` split across chunks is not missed, skips responses
 that are not `text/html` or already carry `content-length`, and never double-injects when the hub's
@@ -89,7 +89,7 @@ own transform already ran. Disable all of it with `overlay: false`.
 
 ## 5. RPC reference
 
-All ids are namespaced `devfra-plugins` (`scope.rpc.call('list-comments')`, MCP `devfra-plugins_list-comments`).
+All ids are namespaced `wrikka-vite-devtools` (`scope.rpc.call('list-comments')`, MCP `wrikka-vite-devtools_list-comments`).
 
 | Id | Kind | Args | Returns |
 |---|---|---|---|
@@ -122,7 +122,7 @@ Limits: body ≤8000 chars, ≤20 skills per comment, ideas run ≤5 min, commen
 ```ts
 import { connectDevframe } from 'devframe/client'
 
-const scope = (await connectDevframe()).scope('devfra-plugins')
+const scope = (await connectDevframe()).scope('wrikka-vite-devtools')
 const { items } = await scope.rpc.call('list-comments')
 const comment = await scope.rpc.call('submit-comment', {
   body: 'Move the filter row above the results',
@@ -137,7 +137,7 @@ const { streamId } = await scope.rpc.call('run-agent', { commentId: comment.id }
 Typed ids come from `src/client/typed-rpc.d.ts` (module augmentation of
 `DevframeRpcClientFunctions`), so `scope.rpc.call('submit-comment', …)` is checked in the frame SPA.
 
-The shipped frame SPA at `<base>devfra-plugins/` (built from `src/client/`) is a full inbox: it calls
+The shipped frame SPA at `<base>wrikka-vite-devtools/` (built from `src/client/`) is a full inbox: it calls
 `runner-info`, `list-skills` and `list-comments` (polled every 2 s), offers a submit form
 (kind / mode / cssPath / page / multi-select skills), Re-run per comment, and streams
 `agent-logs` into each card. It is styled with UnoCSS (`presetWind4` + variant-group and
@@ -151,10 +151,10 @@ matches plain `.ts`, and `base: './'`.
 The frame inbox is the complete agent console — no page overlay needed. Pin the driver once:
 
 ```ts
-useDevfra({ agent: { driver: 'opencode' } })
+useWrikkaViteDevtools({ agent: { driver: 'opencode' } })
 ```
 
-1. Open `<base>devfra-plugins/` — the header comes from `runner-info`; `driver: opencode` confirms the
+1. Open `<base>wrikka-vite-devtools/` — the header comes from `runner-info`; `driver: opencode` confirms the
    pin, `available` lists every installed CLI (`'auto'` would pick the first of claude → codex →
    opencode).
 2. Submit with kind `comment` → `autoRun` immediately runs `opencode run` in the project cwd with
@@ -173,7 +173,7 @@ useDevfra({ agent: { driver: 'opencode' } })
 ## 7. MCP
 
 `POST <base>__mcp` (requires an `Origin` header matching the Vite server). `tools/list` aggregates
-every mounted frame: `devfra-plugins_*` (one per RPC above) plus `devframes_plugin_*` and
+every mounted frame: `wrikka-vite-devtools_*` (one per RPC above) plus `devframes_plugin_*` and
 `devframes_service_git_*`. Point any MCP client (Devin/Claude/Qoder) at the URL to let it read the
 inbox, submit comments, and start runs from outside the browser.
 
@@ -192,7 +192,7 @@ curl -s -X POST http://localhost:5199/__devframes/__mcp \
   -H 'Content-Type: application/json' -H 'Origin: http://localhost:5199' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
-        "name":"devfra-plugins_list-comments","arguments":{"arg0":{}}}}'
+        "name":"wrikka-vite-devtools_list-comments","arguments":{"arg0":{}}}}'
 ```
 
 A flat object instead of `{"arg0": …}` fails with `DF0043 … received an invalid argument at position 0`.
@@ -210,16 +210,16 @@ Under the hub project storage dir (`ctx.host.getStorageDir('project')`):
 
 ```ts
 // no agent automation, devtools hub only
-useDevfra({ overlay: false, agent: { autoRun: false } })
+useWrikkaViteDevtools({ overlay: false, agent: { autoRun: false } })
 
 // pin the driver and add a project skill folder
-useDevfra({ agent: { driver: 'codex' }, skillsRoots: ['./.devin/skills', 'C:/me/devin-skills'] })
+useWrikkaViteDevtools({ agent: { driver: 'codex' }, skillsRoots: ['./.devin/skills', 'C:/me/devin-skills'] })
 
 // opencode as the only driver, worked entirely from the frame inbox (see §6)
-useDevfra({ agent: { driver: 'opencode', autoRun: true }, overlay: false })
+useWrikkaViteDevtools({ agent: { driver: 'opencode', autoRun: true }, overlay: false })
 
 // minimal mount — only the comment/agent frame
-useDevfra({ plugins: ['devfra-plugins'] })
+useWrikkaViteDevtools({ plugins: ['wrikka-vite-devtools'] })
 ```
 
 ## 10. Troubleshooting
@@ -228,7 +228,7 @@ useDevfra({ plugins: ['devfra-plugins'] })
 |---|---|
 | `no agent CLI found` in a comment | no `claude`/`codex`/`opencode` on PATH — install one or pin `agent.driver` |
 | Overlay bar missing but hub opens | `overlay: false`, or the frame is not `dev`-capable in build output |
-| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `devfra-plugins:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
+| Overlay bar missing in an SSR app (TanStack Start / Nuxt / SvelteKit) | the `wrikka-vite-devtools:ssr-inject` middleware is dev-only and injects into streamed HTML only when `Accept` includes `text/html` and no `content-length` is set — a prerendered/cached document won't get the bar; load the page through the dev server |
 | Console: `exports no callable "default"` | the page-script module has no callable default — the dock executor calls `mod.default(hubContext)` |
 | Ideas return `raw` only | the CLI answered in prose — `parseIdeas` needs `title — detail` / JSON-ish lines; refine the focus text |
 | Picker never highlights | the app stops `mousemove` at capture phase or an element overlays the whole page |

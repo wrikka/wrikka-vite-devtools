@@ -1,16 +1,16 @@
 > ![Status](https://img.shields.io/badge/status-in_development-red)
 
-# devfra-plugins
+# wrikka-vite-devtools
 
 [Devframe](https://devfra.me) devtools hub with all add-ons plus an in-page comment→agent workflow
-as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get the hub at
+as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts` and get the hub at
 `/__devframes/`, the **Comment** frame inbox, and an aggregate MCP endpoint for agents.
 
 ![vite](https://img.shields.io/badge/built%20with-vite-646cff) ![devframe](https://img.shields.io/badge/devframe-1.2.x-7b1fa2) ![agents](https://img.shields.io/badge/agent%20CLI-claude%20%7C%20codex%20%7C%20opencode-0097a7)
 
 ```text
 +--------------------------------------------------------------------------+
-| devfra-plugins: comment -> agent lifecycle (input -> process -> output)      |
+| wrikka-vite-devtools: comment -> agent lifecycle (input -> process -> output)      |
 |                                                                          |
 |  1. PICK     overlay bar in any dev page: element | component | page     |
 |              (or type directly into the hub frame form)                  |
@@ -28,7 +28,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 1. Install — previews ship from pkg.pr.new (the package is not on npm):
 
    ```bash
-   bun add -D "devfra-plugins@https://pkg.pr.new/wrikka/devfra-plugins@<ref>"
+   bun add -D "wrikka-vite-devtools@https://pkg.pr.new/wrikka/wrikka-vite-devtools@<ref>"
    ```
 
 2. Add the plugin — it must come **before** framework plugins that transform the HTML/SSR entry
@@ -36,10 +36,10 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 
    ```ts
    // vite.config.ts
-   import { useDevfra } from 'devfra-plugins/vite'
+   import { useWrikkaViteDevtools } from 'wrikka-vite-devtools/vite'
 
    export default defineConfig({
-     plugins: [useDevfra({ auth: false }), solid(), tanstackStart()],
+     plugins: [useWrikkaViteDevtools({ auth: false }), solid(), tanstackStart()],
    })
    ```
 
@@ -48,14 +48,14 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
    ```bash
    bun run dev
    # hub:        http://localhost:<port>/__devframes/
-   # frame:      http://localhost:<port>/__devframes/devfra-plugins/
+   # frame:      http://localhost:<port>/__devframes/wrikka-vite-devtools/
    # MCP:        POST http://localhost:<port>/__devframes/__mcp
    ```
 
 4. Pin an agent driver (optional) — `'auto'` picks the first installed of claude → codex → opencode:
 
    ```ts
-   useDevfra({ agent: { driver: 'opencode', autoRun: true } })
+   useWrikkaViteDevtools({ agent: { driver: 'opencode', autoRun: true } })
    ```
 
 5. Comment and watch — pick an element (or the whole page) in the overlay bar, write the request,
@@ -69,7 +69,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 | ![c](https://api.iconify.design/mdi/comment-search-outline.svg?color=%231976d2&width=16) | Comment toolbar | Edge-attached full-width bottom toolbar (Solid + UnoCSS, shadow DOM) with `element` / `component` / `page` pickers | Feedback lands on the exact node, not a screenshot | open any dev page |
 | ![n](https://api.iconify.design/mdi/map-marker-radius-outline.svg?color=%233949ab&width=16) | Pinned annotations | Numbered pins anchor to commented elements; click a pin for its bubble (body, status, agent result); **Pins** toggles them | see every open comment in its real page context | **Pins** button |
 | ![r](https://api.iconify.design/mdi/robot.svg?color=%237b1fa2&width=16) | Agent auto-run | A submitted comment spawns claude / codex / opencode with the prompt on stdin | idea → edited code without leaving the browser | `agent: { autoRun: true }` |
-| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>devfra-plugins/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>devfra-plugins/` |
+| ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comment frame inbox | The **Comment** frame page (`<base>wrikka-vite-devtools/`) has a submit form, live comment list (2 s poll), Re-run and streamed logs | drive the whole workflow from the hub, no page click needed | open `<base>wrikka-vite-devtools/` |
 | ![s](https://api.iconify.design/mdi/server-network.svg?color=%23388e3c&width=16) | SSR injection | dev-only middleware patches the streamed HTML when `transformIndexHtml` never runs | works in TanStack Start / Nuxt / SvelteKit with no `index.html` | `overlay: true` (default) |
 | ![l](https://api.iconify.design/mdi/layers.svg?color=%23f57c00&width=16) | Framework aware | Detects Solid / Vue / React / Nuxt / Svelte from runtime marks | the resolved component name goes into the agent prompt | mode `component` |
 | ![k](https://api.iconify.design/mdi/lightning-bolt.svg?color=%23c2185b&width=16) | Skill picker | Attach harness skills (devin / claude / qoder global + project roots) to a comment | the agent follows your conventions | composer skill chips |
@@ -82,7 +82,7 @@ as a **single Vite plugin** — add `useDevfra()` to `vite.config.ts` and get th
 ### Usage via Vite plugin
 
 ```ts
-useDevfra({
+useWrikkaViteDevtools({
   base: '/__devframes/',        // hub mount; each frame lives at <base><id>/
   plugins: 'all',               // or a list of plugin keys
   mcp: 'auto',                  // aggregate MCP endpoint at <base>__mcp
@@ -107,7 +107,7 @@ useDevfra({
 ### Usage via the hub frame (agent workflow)
 
 <details>
-<summary>Open <code>/__devframes/devfra-plugins/</code> and run the full comment → agent loop in the browser</summary>
+<summary>Open <code>/__devframes/wrikka-vite-devtools/</code> and run the full comment → agent loop in the browser</summary>
 
 The shipped frame SPA (UnoCSS `presetWind4`, no shortcuts) is a complete comments client: it shows
 the active driver from `runner-info`, a submit form (kind / mode / cssPath / page / skills), the
@@ -118,7 +118,7 @@ URL above.
 
 ```text
 +----------------------------------------------------------------+
-|  /__devframes/devfra-plugins/                                      |
+|  /__devframes/wrikka-vite-devtools/                                      |
 |  runner: driver: opencode - installed: claude, codex, opencode |
 |  +-------------------------+  +------------------------------+ |
 |  | New comment             |  | Comments (poll every 2 s)    | |
@@ -134,7 +134,7 @@ The agent pattern — drive every run with **opencode** (or any installed CLI) t
 
 ```ts
 // vite.config.ts — pin the driver used by auto-run, Re-run and generate-ideas
-useDevfra({ agent: { driver: 'opencode' } })
+useWrikkaViteDevtools({ agent: { driver: 'opencode' } })
 ```
 
 1. The header line comes from `runner-info` — `driver: opencode` confirms the pin; `available`
@@ -161,7 +161,7 @@ useDevfra({ agent: { driver: 'opencode' } })
 ```ts
 import { connectDevframe } from 'devframe/client'
 
-const scope = (await connectDevframe()).scope('devfra-plugins')
+const scope = (await connectDevframe()).scope('wrikka-vite-devtools')
 const { items } = await scope.rpc.call('list-comments')
 const comment = await scope.rpc.call('submit-comment', {
   body: 'Move the filter row above the results',
@@ -195,12 +195,12 @@ curl -s -X POST http://localhost:5199/__devframes/__mcp \
   -H 'Content-Type: application/json' -H 'Origin: http://localhost:5199' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{
-        "name":"devfra-plugins_run-agent","arguments":{"arg0":{"commentId":"..."}}}}'
+        "name":"wrikka-vite-devtools_run-agent","arguments":{"arg0":{"commentId":"..."}}}}'
 ```
 
 | tool group | examples | notes |
 |---|---|---|
-| `devfra-plugins_*` | one per RPC above | args are **positional** — `{"arg0": {…}}` |
+| `wrikka-vite-devtools_*` | one per RPC above | args are **positional** — `{"arg0": {…}}` |
 | `devframes_plugin_*` | inspect, og, a11y, git… | only mounted frames appear |
 | `devframes_service_git_*` | git status/log helpers | service self-provided |
 
