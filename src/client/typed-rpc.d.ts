@@ -1,5 +1,6 @@
 import type { RpcDefinitionsToFunctionsWithNamespace } from 'devframe/types'
 import type { getMeta, scanDir } from '../rpc'
+import type { listComponents, listRoutes, auditSeo } from '../rpc'
 import type { createCommentRpc } from '../rpc/comments'
 import type { createAgentRpc } from '../rpc/agents'
 import type { createSkillsRpc } from '../rpc/skills'
@@ -19,6 +20,9 @@ declare module 'devframe' {
       [
         typeof getMeta,
         typeof scanDir,
+        typeof listComponents,
+        typeof listRoutes,
+        typeof auditSeo,
         CommentDefs['listComments'],
         CommentDefs['submitComment'],
         CommentDefs['updateComment'],

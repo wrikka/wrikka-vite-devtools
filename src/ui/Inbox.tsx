@@ -1,7 +1,8 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from './api'
-import { btn, card, chip, chipOn, hint, link, row, statusPill } from './bits'
+import CommentCard from './CommentCard'
+import { btn, chip, chipOn, hint, row } from './bits'
 
 export interface InboxProps {
   api: PanelApi
@@ -11,16 +12,6 @@ export interface InboxProps {
 
 type Filter = 'all' | Comment['status']
 const FILTERS: Filter[] = ['all', 'queued', 'running', 'done', 'failed']
-
-/** Only a real web url may become a clickable target — never `javascript:` and friends. */
-function httpUrl(value: string): string | undefined {
-  try {
-    const u = new URL(value)
-    return u.protocol === 'http:' || u.protocol === 'https:' ? value : undefined
-  } catch {
-    return undefined
-  }
-}
 
 function signature(items: Comment[]): string {
   return items.map((c) => `${c.id}:${c.status}:${c.body.length}:${c.resultSummary ?? ''}`).join('|')
@@ -86,62 +77,6 @@ export default function Inbox(p: InboxProps) {
     void refresh()
   }
 
-  function CommentCard(cp: { comment: Comment }) {
-    let box!: HTMLDivElement
-    const log = createMemo(() => logs()[cp.comment.id])
-    createEffect(() => {
-      const text = log()
-      if (text === undefined || !box) return
-      box.textContent = text
-      box.scrollTop = box.scrollHeight
-    })
-    return (
-      <div class={card}>
-        <span class={statusPill(cp.comment.status)}>{cp.comment.status}</span>
-        <div>{cp.comment.body}</div>
-        <div class={hint}>
-          {`${cp.comment.selection.mode} @ ${cp.comment.selection.cssPath} — `}
-          <Show when={httpUrl(cp.comment.page)} fallback={<span>{cp.comment.page}</span>}>
-            {(url) => (
-              <a
-                class={`${link} break-all`}
-                href={url()}
-                target="_blank"
-                rel="noreferrer"
-                title="Open the target page"
-              >
-                {cp.comment.page}
-              </a>
-            )}
-          </Show>
-        </div>
-        <Show when={cp.comment.skills.length > 0}>
-          <div class={hint}>{`skills: ${cp.comment.skills.join(', ')}`}</div>
-        </Show>
-        <Show when={cp.comment.capturePath}>
-          <div class={hint}>{`capture: ${cp.comment.capturePath}`}</div>
-        </Show>
-        <Show when={cp.comment.resultSummary}>
-          <div class={hint}>{`result: ${cp.comment.resultSummary}`}</div>
-        </Show>
-        <div class={row}>
-          <Show when={cp.comment.status === 'running'} fallback={
-            <button class={btn} onClick={() => void startRun(cp.comment)}>Re-run</button>
-          }>
-            <button class={btn} onClick={() => void cancelRun(cp.comment)}>Cancel</button>
-          </Show>
-          <button class={btn} onClick={() => void dismiss(cp.comment)}>Dismiss</button>
-        </div>
-        <Show when={log() !== undefined}>
-          <div
-            ref={box}
-            class="max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-[#26282f] p-2 font-mono text-[11px] text-[#9aa0ab]"
-          />
-        </Show>
-      </div>
-    )
-  }
-
   return (
     <>
       <div class={row}>
@@ -169,7 +104,17 @@ export default function Inbox(p: InboxProps) {
         </Show>
       </div>
       <div class="flex flex-col gap-2">
-        <For each={visible()}>{(c) => <CommentCard comment={c} />}</For>
+        <For each={visible()}>
+          {(c) => (
+            <CommentCard
+              comment={c}
+              log={logs()[c.id]}
+              onRun={(comment) => void startRun(comment)}
+              onCancel={(comment) => void cancelRun(comment)}
+              onDismiss={(comment) => void dismiss(comment)}
+            />
+          )}
+        </For>
       </div>
       <Show when={visible().length === 0}>
         <p class={hint}>

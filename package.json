@@ -30,7 +30,8 @@
     "build:overlay": "vite build -c vite.overlay.config.ts && bun scripts/inline-overlay-css.ts",
     "build": "bun run build:pkg && bun run build:overlay && bun run build:client",
     "playground": "bun run build && vite examples/playground --port 5199",
-    "typecheck": "tsc --noEmit"
+    "test": "bun test",
+    "typecheck": "bun check"
   },
   "peerDependencies": {
     "vite": ">=5"

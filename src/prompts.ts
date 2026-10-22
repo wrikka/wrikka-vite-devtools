@@ -5,7 +5,7 @@ export interface PromptContext {
   driver: string
 }
 
-export function selectionBlock(c: Comment): string {
+function selectionBlock(c: Comment): string {
   const s = c.selection
   const lines = [`- mode: ${s.mode}`]
   if (s.framework) lines.push(`- framework: ${s.framework}`)

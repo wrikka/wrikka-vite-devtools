@@ -4,21 +4,26 @@ export interface PickHandle {
   stop(): void
 }
 
+export interface PickPoint {
+  x: number
+  y: number
+}
+
 /**
  * Hover-and-click element picker. The highlight lives in `hostRoot` (a shadow
  * root with pointer-events:none), so `document.elementFromPoint` still sees the app.
  */
 export function startPick(opts: {
   hostRoot: ShadowRoot
-  onPick: (target: HTMLElement, info: ElementInfo) => void
+  onPick: (target: HTMLElement, info: ElementInfo, point: PickPoint) => void
   onCancel: () => void
 }): PickHandle {
   const box = document.createElement('div')
   box.className =
-    'pointer-events-none absolute z-[2147483002] rounded-[3px] border-2 border-solid border-[#4c6ef5] bg-[rgba(76,110,245,0.12)]'
+    'pointer-events-none absolute z-[2147483002] rounded-[3px] border-2 border-solid border-accent bg-accent/15'
   const tip = document.createElement('div')
   tip.className =
-    'pointer-events-none absolute z-[2147483003] whitespace-nowrap rounded-md bg-[#17181d] px-2 py-0.5 font-mono text-[11px] text-[#e8e9ed] shadow-[0_2px_10px_rgba(0,0,0,0.4)]'
+    'pointer-events-none absolute z-[2147483003] whitespace-nowrap rounded-md bg-surface-raised px-2 py-0.5 font-mono text-[11px] text-ink shadow-[0_2px_10px_rgba(0,0,0,0.4)]'
   opts.hostRoot.append(box, tip)
 
   let target: Element | null = null
@@ -49,8 +54,10 @@ export function startPick(opts: {
     e.stopPropagation()
     const under = (target ?? document.elementFromPoint(e.clientX, e.clientY)) as HTMLElement | null
     stop()
-    if (under && under.tagName !== 'HTML') opts.onPick(under, describe(under))
-    else opts.onCancel()
+    if (under && under.tagName !== 'HTML') {
+      const r = under.getBoundingClientRect()
+      opts.onPick(under, describe(under), { x: r.left, y: r.top })
+    } else opts.onCancel()
   }
 
   function onKey(e: KeyboardEvent): void {

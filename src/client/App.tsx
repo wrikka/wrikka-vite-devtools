@@ -42,7 +42,7 @@ export default function App(p: { api: PanelApi }) {
 
   return (
     <div class="flex min-h-screen flex-col">
-      <nav class="flex flex-wrap gap-1 border-b border-solid border-[#3a3d46] bg-[#17181d] p-2" role="tablist">
+      <nav class="flex flex-wrap gap-1 border-b border-solid border-line bg-surface-raised p-2" role="tablist">
         <For each={TABS}>
           {(t) => (
             <button
@@ -85,7 +85,7 @@ export default function App(p: { api: PanelApi }) {
           </div>
         </Show>
         <Show when={tab() === 'ideas'}>
-          <Show when={page()} fallback={<p class="text-[12px] text-[#9aa0ab]">Set the target page url in the “New comment” tab first.</p>}>
+          <Show when={page()} fallback={<p class="text-[12px] text-ink-muted">Set the target page url in the “New comment” tab first.</p>}>
             <Ideas api={p.api} page={page()} onApply={applyIdea} />
           </Show>
         </Show>

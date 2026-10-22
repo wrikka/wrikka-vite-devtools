@@ -21,9 +21,11 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 ## Scope
 
 - In: `src/` (plugin, devframe definition, RPC, agent runner, overlay, frame SPA),
-  `examples/playground/` (verification host), `README.md`, `USAGE.md`, `SKILL.md`, `.github/workflows/`
+  `examples/playground/` (verification host), `README.md`, `USAGE.md`, `.github/workflows/`
 - Out: upstream Devframe behaviour (`follow-tool-devfra`), host-app integration in other repos,
   `dist/` and `node_modules/` (generated)
+- Global skills for this repo: `/use-wrikka-vite-devtools` (mount in a host project) and
+  `/update-wrikka-vite-devtools` (maintain this repo) — they live at the `devin-skills` root, not here
 
 ## Execute
 
@@ -31,7 +33,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 
 1. Read this file and `USAGE.md`, then check `git status` — this repo is a git submodule of
    `devin-skills`, so commit here first, then bump the gitlink in the parent.
-2. Read `src/protocol.ts` before touching any RPC — schemas there are the single source of truth for
+2. For mount/verify work in a host project use `/use-wrikka-vite-devtools`; for work on this repo itself use `/update-wrikka-vite-devtools`.
+3. Read `src/protocol.ts` before touching any RPC — schemas there are the single source of truth for
    both the server handlers and the overlay's plain-TS mirror (`src/overlay/api.ts`).
 
 ### 2. Run Commands
@@ -42,27 +45,31 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   folds the generated stylesheet into that one file) → `build:client` (vite → `dist/client`)
 - `bun run playground` — build, then serve `examples/playground` on `:5199`
   → hub `http://localhost:5199/__devframes/`
-- `bun run typecheck` — `tsc --noEmit` over `src` + the build configs
+- `bun run typecheck` — `bun check` over `src` + the build configs
 - CI (`.github/workflows/publish.yml`): `bun install --frozen-lockfile` → `bun run build` →
   `bunx --bun pkg-pr-new publish` — no lint/test step, so typecheck + build are the gate
 
 ### 3. Follow Architecture
 
-1. Layering: `vite.ts` (public plugin, options, frame selection) → `devframe.ts` (definition + RPC
-   wiring) → `rpc/*` (one file per bounded context) → `agent-runner.ts` / `comment-store.ts` /
-   `prompts.ts` (infrastructure). `index.ts` is the only barrel.
+1. Layering: `vite.ts` (public plugin + options) → `add-ons.ts` (plugin keys, add-on factories,
+   the `unocss` dock) → `devframe.ts` (definition + RPC wiring) → `rpc/*` (one file per bounded
+   context) → `agent-runner.ts` / `comment-store.ts` / `prompts.ts` (infrastructure). `index.ts` is
+   the only barrel. Browser code shared by the overlay and the hub client lives in `src/ui/`
+   (components, `bits.ts` class tokens, `api.ts` panel contract, `connect.ts` panel bridge) —
+   `src/overlay/ui/` holds only the in-page chrome (`Pill`, `Panel`, `Pins`).
 2. Client injection has two paths: the hub's `transformIndexHtml` (file-backed `index.html` only)
-   and `ssr-inject.ts` — a dev-only middleware that patches `res.write`/`res.end` to insert
-   `<base>embedded.js` before the first `</body>` of a streamed HTML response (6-byte hold-back for
-   split tags, bail-out on non-HTML or `content-length`, dedup when the hub already injected).
-   Keep the two paths idempotent against each other when touching either.
+   and `ssr-inject.ts` — a dev-only middleware whose stream patching lives in `html-stream.ts`
+   (`hookHtmlResponse`) and inserts `<base>embedded.js` before the first `</body>` of a streamed
+   HTML response (6-byte hold-back for split tags, bail-out on non-HTML or `content-length`, dedup
+   when the hub already injected). Keep the two paths idempotent against each other when touching
+   either.
 3. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script, UI in Solid + UnoCSS:
    `host.ts` (single shadow host + inlined `<style>`) → `picker.ts` (capture-phase highlight) →
    `frameworks.ts` (element description) → `hub.ts` (hub base from the served module URL) →
-   `ui/` Solid components (`Toolbar` edge-attached bottom
-   strip, `Panel` dialog shell, `Composer`, `Inbox`, `Ideas`, `Pins` annotations + bubbles,
-   refreshed from the 5s poll) → `main.tsx` (`mountOverlay()` + guarded self-call). The picker
-   stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.
+   `ui/` chrome (`Pill` bottom-right toolbar, `Panel` dialog shell, `Pins` annotations + bubbles,
+   refreshed from the 5s poll) plus the shared `src/ui/` components (`Composer`) → `main.tsx`
+   (`mountOverlay()` + guarded self-call, panel surface via `connectPanelApi()`).
+   The picker stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
    and the MCP suffix (`wrikka-vite-devtools_submit-comment`). Never rename without updating `USAGE.md` §5.
@@ -146,5 +153,5 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 
 - A host project gets hub + add-ons + MCP + overlay from one plugin line
 - `bun run build` and `bun run typecheck` pass; playground shows a full comment→agent→done loop
-- `USAGE.md`, `README.md` and `SKILL.md` match the real option and RPC surface
+- `USAGE.md`, `README.md` and the root skills `/use-wrikka-vite-devtools` + `/update-wrikka-vite-devtools` match the real option and RPC surface
 - Preview release published through pkg.pr.new and consumed by the host app

@@ -12,9 +12,9 @@ export interface IdeasProps {
 }
 
 const impactColors: Record<string, string> = {
-  High: 'bg-[#7c2d3a]',
-  Medium: 'bg-[#7a5b1e]',
-  Low: 'bg-[#2e6b45]',
+  High: 'bg-bad/20 text-bad-ink',
+  Medium: 'bg-warn/20 text-warn-ink',
+  Low: 'bg-ok/20 text-ok-ink',
 }
 
 export default function Ideas(p: IdeasProps) {
@@ -71,7 +71,7 @@ export default function Ideas(p: IdeasProps) {
           <div class={card}>
             <div class={row}>
               <span
-                class={`w-fit rounded border border-solid border-[#3a3d46] px-1.5 text-[10px] font-bold uppercase text-white ${impactColors[idea.impact] ?? ''}`}
+                class={`w-fit rounded border border-solid border-line px-1.5 text-[10px] font-bold uppercase ${impactColors[idea.impact] ?? 'text-ink-muted'}`}
               >
                 {idea.impact}
               </span>

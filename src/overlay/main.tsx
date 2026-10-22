@@ -1,11 +1,10 @@
 import 'virtual:uno.css'
 import './overlay.css'
 import { render } from 'solid-js/web'
-import { connectDevframe } from 'devframe/client'
 import { hubUrl, isHubDocument } from './hub'
 import { mountShadowHost } from './host'
 import App from './ui/App'
-import type { PanelApi } from '../ui/api'
+import { connectPanelApi } from '../ui/connect'
 
 declare global {
   interface Window {
@@ -25,16 +24,7 @@ export default async function mountOverlay(): Promise<void> {
 await mountOverlay()
 
 async function boot(): Promise<void> {
-  const scope = (await connectDevframe()).scope('wrikka-vite-devtools')
-  const rpc = scope.rpc as unknown as {
-    call(id: string, args?: unknown): Promise<any>
-    streaming: { subscribe<T>(channel: string, id: string): AsyncIterable<T> }
-  }
-  const api: PanelApi = {
-    call: (id, args) => rpc.call(id, args),
-    subscribe: (channel, id) => rpc.streaming.subscribe<string>(channel, id),
-  }
-
+  const api = await connectPanelApi()
   const root = mountShadowHost()
   render(() => <App api={api} root={root} hub={hubUrl(import.meta.url)} />, root)
 }

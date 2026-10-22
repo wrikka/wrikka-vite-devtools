@@ -9,6 +9,10 @@ import { createCommentRpc } from './rpc/comments'
 import { createIdeasRpc } from './rpc/ideas'
 import { createSkillsRpc } from './rpc/skills'
 import { getMeta, scanDir } from './rpc/meta'
+import { searchSource } from './rpc/search'
+import { listComponents } from './rpc/components'
+import { listRoutes } from './rpc/routes'
+import { auditSeo } from './rpc/seo'
 import type { DriverPreference } from './agent-runner'
 
 const clientAssets = resolve(import.meta.dirname, 'client')
@@ -102,6 +106,10 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
         capture.saveCapture,
         capture.listCaptures,
         ideas.generateIdeas,
+        searchSource,
+        listComponents,
+        listRoutes,
+        auditSeo,
       ]) {
         us.rpc.register(fn)
       }

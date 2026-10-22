@@ -4,15 +4,6 @@ import type { CommentStore } from '../comment-store'
 import type { Comment } from '../protocol'
 import { CommentSchema, SelectionSchema } from '../protocol'
 
-export interface SubmitCommentInput {
-  body: string
-  page: string
-  kind?: 'comment' | 'idea'
-  selection: z.infer<typeof SelectionSchema>
-  skills?: string[]
-  capturePath?: string
-}
-
 const SubmitSchema = z.object({
   body: z.string().min(1).max(8000),
   page: z.string().min(1).max(500),

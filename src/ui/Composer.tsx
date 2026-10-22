@@ -2,6 +2,7 @@ import { For, Show, createSignal, onCleanup, onMount } from 'solid-js'
 import type { Selection } from '../protocol'
 import type { PanelApi } from './api'
 import { readDraft, stashDraft } from './draft-stash'
+import FocusChips, { focusPrefix, type FocusArea } from './FocusChips'
 import { btn, btnPrimary, chip, chipOn, field, hint, row } from './bits'
 
 export interface ComposerProps {
@@ -30,6 +31,7 @@ export default function Composer(p: ComposerProps) {
   const [attach, setAttach] = createSignal(false)
   const [skills, setSkills] = createSignal<{ name: string }[] | undefined>()
   const [chosen, setChosen] = createSignal<Set<string>>(new Set())
+  const [focus, setFocus] = createSignal<FocusArea[]>([])
 
   function remember(): void {
     clearTimeout(save)
@@ -62,12 +64,17 @@ export default function Composer(p: ComposerProps) {
     remember()
   }
 
+  function toggleFocus(area: FocusArea): void {
+    setFocus((prev) => (prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]))
+  }
+
   async function submit(): Promise<void> {
-    const body = ta.value.trim()
-    if (!body) {
+    const text = ta.value.trim()
+    if (!text) {
       setMsg('write something first')
       return
     }
+    const body = focusPrefix(focus()) + text
     setBusy(true)
     try {
       let capturePath: string | undefined
@@ -97,9 +104,10 @@ export default function Composer(p: ComposerProps) {
 
   return (
     <>
+      <FocusChips selected={focus()} onToggle={toggleFocus} />
       <textarea
         ref={ta}
-        class={`${field} min-h-16 resize-y`}
+        class={`${field} min-h-20 resize-y`}
         placeholder="What should the agent change here? (Ctrl/Cmd+Enter to submit)"
         onInput={remember}
         onKeyDown={(e) => {
@@ -112,55 +120,58 @@ export default function Composer(p: ComposerProps) {
       <div class={row}>
         <span class={hint}>{selectionHint(p.selection)}</span>
       </div>
-      <div class={row}>
-        <select
-          ref={kind}
-          class={btn}
-          aria-label="Comment kind"
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          <option value="comment">Comment</option>
-          <option value="idea">Idea</option>
-        </select>
-        <Show when={p.capture}>
-          <label class={`${row} cursor-pointer`}>
-            <input
-              type="checkbox"
-              checked={attach()}
-              onChange={(e) => setAttach(e.currentTarget.checked)}
-            />
-            attach page capture
-          </label>
-        </Show>
-      </div>
-      <div class={row}>
-        <Show
-          when={skills()}
-          fallback={<span class={hint}>{skills() === undefined ? 'skills: loading…' : 'no skills found'}</span>}
-        >
-          {(list) => (
-            <>
-              <span class={hint}>skills:</span>
-              <For each={list()}>{(s) => (
-                <button
-                  class={`${chip} ${chosen().has(s.name) ? chipOn : ''}`}
-                  title={s.name}
-                  onClick={() => toggleSkill(s.name)}
-                >
-                  {s.name}
-                </button>
-              )}</For>
-            </>
-          )}
-        </Show>
-      </div>
-      <div class={row}>
+      <details class="group">
+        <summary class="cursor-pointer text-[11px] text-ink-muted hover:text-ink">Options</summary>
+        <div class={`${row} mt-1.5`}>
+          <select
+            ref={kind}
+            class={btn}
+            aria-label="Comment kind"
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <option value="comment">Comment</option>
+            <option value="idea">Idea</option>
+          </select>
+          <Show when={p.capture}>
+            <label class={`${row} cursor-pointer`}>
+              <input
+                type="checkbox"
+                checked={attach()}
+                onChange={(e) => setAttach(e.currentTarget.checked)}
+              />
+              attach page capture
+            </label>
+          </Show>
+        </div>
+        <div class={`${row} mt-1.5`}>
+          <Show
+            when={skills()}
+            fallback={<span class={hint}>{skills() === undefined ? 'skills: loading…' : 'no skills found'}</span>}
+          >
+            {(list) => (
+              <>
+                <span class={hint}>skills:</span>
+                <For each={list()}>{(s) => (
+                  <button
+                    class={`${chip} ${chosen().has(s.name) ? chipOn : ''}`}
+                    title={s.name}
+                    onClick={() => toggleSkill(s.name)}
+                  >
+                    {s.name}
+                  </button>
+                )}</For>
+              </>
+            )}
+          </Show>
+        </div>
+      </details>
+      <div class={`${row} justify-end`}>
+        <span class={`${hint} mr-auto`} role="status">
+          {msg()}
+        </span>
         <button class={btnPrimary} disabled={busy()} onClick={() => void submit()}>
           Submit
         </button>
-        <span class={hint} role="status">
-          {msg()}
-        </span>
       </div>
     </>
   )

@@ -123,8 +123,8 @@ markers (`__NUXT__`, `__NEXT_DATA__`, `__SVELTEKIT_*`, `__VUE__`, `__REACT_REFRE
 through Vite's `transformIndexHtml`, which only runs for file-backed `index.html` SPAs. SSR
 frameworks that render the document in JS and stream it (TanStack Start / Solid Start, Nuxt,
 SvelteKit) never hit that hook, so `wrikka-vite-devtools` also mounts a dev-only middleware
-(`src/ssr-inject.ts`) that patches the response stream and inserts the same tag before the first
-`</body>`. It holds back 6 bytes so a `</body>` split across chunks is not missed, skips responses
+(`src/ssr-inject.ts`, stream patch in `src/html-stream.ts`) that inserts the same tag before the
+first `</body>`. It holds back 6 bytes so a `</body>` split across chunks is not missed, skips responses
 that are not `text/html` or already carry `content-length`, and never double-injects when the hub's
 own transform already ran. Disable all of it with `overlay: false`.
 
