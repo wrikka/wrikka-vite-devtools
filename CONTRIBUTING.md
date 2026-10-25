@@ -6,6 +6,7 @@
 bun install
 bun run build      # build:pkg -> build:overlay -> build:client (order matters, see below)
 bun run typecheck
+bun test           # Bun test suite (src/**/*.test.ts)
 ```
 
 ## Build order

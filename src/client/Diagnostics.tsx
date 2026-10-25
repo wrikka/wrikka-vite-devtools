@@ -1,6 +1,19 @@
-import { For, Show, createResource } from 'solid-js'
+import { For, Show, createMemo, createResource } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { card, hint, statusPill } from '../ui/bits'
+import {
+  card,
+  hint,
+  page,
+  pageHead,
+  sectionLabel,
+  stat,
+  statLabel,
+  statRow,
+  statValue,
+  statusPill,
+  title,
+  tonePill,
+} from '../ui/bits'
 
 interface Meta {
   tool: string
@@ -26,38 +39,108 @@ export default function Diagnostics(p: { api: PanelApi }) {
   const [runner] = createResource(() => p.api.call('runner-info') as Promise<RunnerInfo>)
   const [scan] = createResource(() => p.api.call('scan-dir', { path: '.', limit: 30 }) as Promise<ScanResult>)
 
+  const counts = createMemo(() => {
+    const entries = scan.latest?.entries ?? []
+    return {
+      dirs: entries.filter((e) => e.kind === 'dir').length,
+      files: entries.filter((e) => e.kind === 'file').length,
+      other: entries.filter((e) => e.kind === 'other').length,
+    }
+  })
+
   return (
-    <div class="flex flex-col gap-2">
+    <div class={page}>
+      <div class={pageHead}>
+        <h1 class={title}>Diagnostics</h1>
+        <span class={`${hint} mr-auto`}>what this hub runs against</span>
+        <Show when={meta.latest}>{(m) => <span class={statusPill('done')}>{`${m().tool} ${m().version}`}</span>}</Show>
+      </div>
+
       <Show when={meta.error}>
-        <div class={statusPill('failed')}>backend unavailable — static build has no live dev server</div>
+        <div class={`${card} gap-1.5`}>
+          <span class={statusPill('failed')}>backend unavailable</span>
+          <span class={hint}>This is a static build, so there is no live dev server behind the panel.</span>
+        </div>
       </Show>
       <Show when={meta.loading || runner.loading || scan.loading}>
         <span class={hint}>loading…</span>
       </Show>
-      <Show when={meta.latest}>
-        {(m) => (
-          <dl class={card}>
-            <Field label="tool" value={`${m().tool} ${m().version}`} />
-            <Field label="platform" value={m().platform} />
-            <Field label="cwd" value={m().cwd} />
-            <Field label="generated at" value={m().generatedAt} />
-          </dl>
+
+      <Show when={scan.latest}>
+        {(s) => (
+          <div class={statRow}>
+            <div class={stat}>
+              <span class={statValue}>{s().entries.length}</span>
+              <span class={statLabel}>entries</span>
+            </div>
+            <div class={stat}>
+              <span class={statValue}>{counts().dirs}</span>
+              <span class={statLabel}>folders</span>
+            </div>
+            <div class={stat}>
+              <span class={statValue}>{counts().files}</span>
+              <span class={statLabel}>files</span>
+            </div>
+            <div class={stat}>
+              <span class={statValue}>{s().truncated ? '≤' : '='}</span>
+              <span class={statLabel}>listing</span>
+            </div>
+          </div>
         )}
       </Show>
-      <Show when={runner.latest}>
-        {(r) => (
-          <dl class={card}>
-            <Field label="driver" value={r().driver ?? 'none'} />
-            <Field label="installed" value={r().available.join(', ') || 'none'} />
-          </dl>
-        )}
-      </Show>
+
+      <div class="grid grid-cols-1 gap-2 xl:grid-cols-2">
+        <Show when={meta.latest}>
+          {(m) => (
+            <dl class={`${card} gap-1.5`}>
+              <dt class={sectionLabel}>environment</dt>
+              <Field label="tool" value={`${m().tool} ${m().version}`} />
+              <Field label="platform" value={m().platform} />
+              <Field label="cwd" value={m().cwd} />
+              <Field label="generated at" value={m().generatedAt} />
+            </dl>
+          )}
+        </Show>
+        <Show when={runner.latest}>
+          {(r) => (
+            <dl class={`${card} gap-1.5`}>
+              <dt class={sectionLabel}>comment runner</dt>
+              <Field label="driver" value={r().driver ?? 'none'} />
+              <div class="flex flex-wrap items-center gap-1">
+                <span class={hint}>installed</span>
+                <Show when={r().available.length > 0} fallback={<span class={hint}>none</span>}>
+                  <For each={r().available}>{(name) => <span class={tonePill('info')}>{name}</span>}</For>
+                </Show>
+              </div>
+            </dl>
+          )}
+        </Show>
+      </div>
+
       <Show when={scan.latest}>
         {(s) => (
           <div class={card}>
-            <span class={hint}>{`${s().dir} — ${s().entries.length} entries${s().truncated ? ' (truncated)' : ''}`}</span>
-            <ul class="m-0 list-disc pl-5 text-[12px]">
-              <For each={s().entries}>{(e) => <li>{`${e.kind === 'dir' ? '[d]' : '[f]'} ${e.name}${e.size != null ? ` (${e.size} B)` : ''}`}</li>}</For>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class={sectionLabel}>project directory</span>
+              <span class={`${hint} font-mono`}>{s().dir}</span>
+              <span class={`${hint} mr-auto`}>
+                {s().entries.length} entries{s().truncated ? ' (truncated)' : ''}
+              </span>
+            </div>
+            <ul class="m-0 flex list-none flex-col gap-0.5 p-0">
+              <For each={s().entries}>
+                {(e) => (
+                  <li class="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-control">
+                    <span class={tonePill(e.kind === 'dir' ? 'info' : e.kind === 'file' ? 'accent' : 'warn')}>
+                      {e.kind}
+                    </span>
+                    <span class="truncate font-mono text-[11px] text-ink">{e.name}</span>
+                    <Show when={e.size != null}>
+                      <span class={`${hint} ml-auto shrink-0 tabular-nums`}>{`${e.size} B`}</span>
+                    </Show>
+                  </li>
+                )}
+              </For>
             </ul>
           </div>
         )}

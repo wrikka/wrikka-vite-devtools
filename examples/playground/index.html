@@ -3,11 +3,185 @@
   <head>
     <meta charset="UTF-8" />
     <title>wrikka-vite-devtools playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta property="og:title" content="wrikka-vite-devtools playground" />
     <meta property="og:description" content="Host page for verifying the wrikka-vite-devtools Vite plugin" />
   </head>
-  <body>
-    <h1>wrikka-vite-devtools playground</h1>
-    <p>Devtools hub mounted at <a href="/__devframes/">/__devframes/</a></p>
+  <body class="min-h-screen bg-surface text-ink antialiased">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 py-8">
+      <header class="flex flex-wrap items-center gap-3">
+        <span
+          class="flex size-9 items-center justify-center rounded-xl border border-solid border-line bg-accent-soft text-[15px] font-bold text-accent-ink"
+          >W</span
+        >
+        <div class="flex flex-col">
+          <strong class="text-[13px] font-semibold text-ink">wrikka-vite-devtools</strong>
+          <span class="text-[11px] text-ink-muted">playground host · Vite plugin demo</span>
+        </div>
+        <a
+          class="ml-auto rounded-lg border border-solid border-line bg-control px-3 py-1.5 text-[12px] text-ink hover:bg-control-hover"
+          href="/__devtools/"
+          >Open hub</a
+        >
+      </header>
+
+      <section class="rounded-2xl border border-solid border-line bg-linear-to-br from-accent-soft via-surface-raised to-surface p-7">
+        <span class="text-[10px] font-medium uppercase tracking-wider text-ink-faint">devtools hub · one plugin line</span>
+        <h1 class="mt-2 max-w-2xl text-[30px] font-semibold leading-tight tracking-tight text-ink">
+          Every devtool your app needs, docked on the left.
+        </h1>
+        <p class="mt-3 max-w-2xl text-[13px] leading-relaxed text-ink-muted">
+          This page is the host app. The plugin mounts a devframes hub at
+          <code class="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-[12px] text-ink">/__devtools/</code>
+          with dock panels, an aggregate MCP endpoint, and an in-page pill that turns a click into an agent task.
+        </p>
+        <div class="mt-5 flex flex-wrap items-center gap-2">
+          <a
+            class="rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white hover:bg-accent-hover"
+            href="/__devtools/"
+            >Open the hub →</a
+          >
+          <a
+            class="rounded-lg border border-solid border-line bg-control px-4 py-2 text-[13px] text-ink hover:bg-control-hover"
+            href="/__devtools/wrikka-vite-devtools/"
+            >Comments panel</a
+          >
+          <code class="rounded-lg border border-solid border-line bg-surface-sunken px-3 py-2 font-mono text-[12px] text-ink-muted"
+            >POST /__devtools/__mcp</code
+          >
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Hub status" aria-live="polite">
+        <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised px-3 py-2">
+          <span id="status-hub" class="text-[20px] font-semibold leading-none text-ink-muted">…</span>
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ink-faint">hub</span>
+        </div>
+        <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised px-3 py-2">
+          <span id="status-frames" class="text-[20px] font-semibold leading-none text-ink tabular-nums">…</span>
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ink-faint">frames</span>
+        </div>
+        <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised px-3 py-2">
+          <span id="status-backend" class="text-[20px] font-semibold leading-none text-ink tabular-nums">…</span>
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ink-faint">backend</span>
+        </div>
+        <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised px-3 py-2">
+          <span id="status-dock" class="text-[20px] font-semibold leading-none text-ink">…</span>
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ink-faint">dock default</span>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <div class="flex flex-wrap items-baseline gap-2">
+          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">What the dock ships</h2>
+          <span class="text-[11px] text-ink-muted">panel · what it answers · category</span>
+        </div>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <a class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4 hover:border-line-strong hover:bg-control" href="/__devtools/wrikka-vite-devtools/">
+            <span class="text-[13px] font-semibold text-ink">Comments</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Inbox, new comment, ideas, diagnostics — the agent console.</span>
+            <span class="mt-1 w-fit rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-ink">own</span>
+          </a>
+          <a class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4 hover:border-line-strong hover:bg-control" href="/__devtools/wrikka-vite-devtools/#/components">
+            <span class="text-[13px] font-semibold text-ink">Components</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Visual grid of every component with refs, exports and a LOC budget.</span>
+            <span class="mt-1 w-fit rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-ink">own</span>
+          </a>
+          <a class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4 hover:border-line-strong hover:bg-control" href="/__devtools/wrikka-vite-devtools/#/routes">
+            <span class="text-[13px] font-semibold text-ink">Routes &amp; SEO</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Route table plus an audit of the HTML the dev server actually serves.</span>
+            <span class="mt-1 w-fit rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-ink">own</span>
+          </a>
+          <a class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4 hover:border-line-strong hover:bg-control" href="/__devtools/wrikka-vite-devtools/#/solid">
+            <span class="text-[13px] font-semibold text-ink">Solid</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Live owner tree, signals read per owner, unowned signals.</span>
+            <span class="mt-1 w-fit rounded-full bg-ok/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ok-ink">framework</span>
+          </a>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">UnoCSS</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">The inspector served by @unocss/vite, framed as a dock panel.</span>
+            <span class="mt-1 w-fit rounded-full bg-ok/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ok-ink">framework</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">Devframe Inspector</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Mounted frames, their RPC surfaces, and the hub protocol.</span>
+            <span class="mt-1 w-fit rounded-full bg-control px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">add-on</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">OG preview</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Social card as crawlers see it — title, description, image.</span>
+            <span class="mt-1 w-fit rounded-full bg-control px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">add-on</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">Accessibility</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Contrast, focus order, landmarks, and the offending nodes.</span>
+            <span class="mt-1 w-fit rounded-full bg-control px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">add-on</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">Git</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Branch, status, staged diff and log without leaving the app.</span>
+            <span class="mt-1 w-fit rounded-full bg-control px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">add-on</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4">
+            <span class="text-[13px] font-semibold text-ink">Assets &amp; Terminals</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Public asset tree, plus a real shell session in the dock.</span>
+            <span class="mt-1 w-fit rounded-full bg-control px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">add-on</span>
+          </div>
+          <div class="flex flex-col gap-1 rounded-xl border border-solid border-dashed border-line bg-surface-raised/60 p-4">
+            <span class="text-[13px] font-semibold text-ink">Data Inspector · Code Server</span>
+            <span class="text-[11px] leading-relaxed text-ink-muted">Opt-in frames; install their peers and add the keys.</span>
+            <span class="mt-1 w-fit rounded-full bg-warn/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warn-ink">opt-in</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-3 lg:grid-cols-5">
+        <div class="flex flex-col gap-3 lg:col-span-3">
+          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">How a change gets made</h2>
+          <ol class="m-0 flex list-none flex-col gap-2 p-0">
+            <li class="flex gap-3 rounded-xl border border-solid border-line bg-surface-raised p-3">
+              <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">1</span>
+              <span class="text-[12px] leading-relaxed text-ink-muted"><strong class="font-semibold text-ink">Open the hub.</strong> The dock seeds itself as a left edge rail; every panel is an iframe owned by the plugin.</span>
+            </li>
+            <li class="flex gap-3 rounded-xl border border-solid border-line bg-surface-raised p-3">
+              <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">2</span>
+              <span class="text-[12px] leading-relaxed text-ink-muted"><strong class="font-semibold text-ink">Pick a node.</strong> The in-page pill targets an element, a component, or the whole page and names the route.</span>
+            </li>
+            <li class="flex gap-3 rounded-xl border border-solid border-line bg-surface-raised p-3">
+              <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">3</span>
+              <span class="text-[12px] leading-relaxed text-ink-muted"><strong class="font-semibold text-ink">Comment, then let the agent run.</strong> The Inbox streams the run; the same store answers MCP clients.</span>
+            </li>
+          </ol>
+        </div>
+        <div class="flex flex-col gap-2 lg:col-span-2">
+          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">Mount it</h2>
+          <pre class="m-0 overflow-x-auto rounded-xl border border-solid border-line bg-surface-sunken p-4 font-mono text-[11px] leading-relaxed text-ink"><code>// vite.config.ts
+useWrikkaViteDevtools({
+  plugins: 'all',
+  dock: { mode: 'edge', position: 'left' },
+  auth: false,
+})</code></pre>
+          <span class="text-[11px] leading-relaxed text-ink-muted">Place the plugin before framework plugins that transform HTML or the SSR entry.</span>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <div class="flex flex-wrap items-baseline gap-2">
+          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">All 14 apps · live in the dock</h2>
+          <span class="text-[11px] text-ink-muted">click any card to open that panel</span>
+        </div>
+        <div id="roadmap" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <noscript class="text-[12px] text-ink-muted">Enable JavaScript to render the app launcher.</noscript>
+        </div>
+      </section>
+
+      <footer class="flex flex-wrap items-center gap-3 border-t border-solid border-line pt-4 text-[11px] text-ink-muted">
+        <span>Playground only — the plugin works in any Vite app.</span>
+        <a class="ml-auto text-accent-ink underline underline-offset-2 hover:text-accent-hover" href="/__devtools/">/__devtools/</a>
+        <a class="text-accent-ink underline underline-offset-2 hover:text-accent-hover" href="/__devtools/__index.json">__index.json</a>
+        <a class="text-accent-ink underline underline-offset-2 hover:text-accent-hover" href="/__devtools/__mcp">__mcp</a>
+      </footer>
+    </div>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

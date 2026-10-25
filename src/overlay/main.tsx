@@ -5,6 +5,7 @@ import { hubUrl, isHubDocument } from './hub'
 import { mountShadowHost } from './host'
 import App from './ui/App'
 import { connectPanelApi } from '../ui/connect'
+import { startCollectors } from './collectors'
 
 declare global {
   interface Window {
@@ -25,6 +26,7 @@ await mountOverlay()
 
 async function boot(): Promise<void> {
   const api = await connectPanelApi()
+  startCollectors(api)
   const root = mountShadowHost()
-  render(() => <App api={api} root={root} hub={hubUrl(import.meta.url)} />, root)
+  render(() => <App api={api} hub={hubUrl(import.meta.url)} />, root)
 }

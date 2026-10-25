@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { CommentStore } from '../comment-store'
 import type { Comment } from '../protocol'
 import { CommentSchema, SelectionSchema } from '../protocol'
+import { assertCan } from './access'
 
 const SubmitSchema = z.object({
   body: z.string().min(1).max(8000),
@@ -40,6 +41,7 @@ export function createCommentRpc(deps: CommentRpcDeps) {
     args: [SubmitSchema],
     returns: CommentSchema,
     handler: async (input) => {
+      assertCan('comment:write')
       const comment: Comment = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -71,6 +73,7 @@ export function createCommentRpc(deps: CommentRpcDeps) {
     ],
     returns: z.object({ updated: z.boolean() }),
     handler: async ({ id, status, resultSummary }) => {
+      assertCan('comment:write')
       const updated = deps.store.update(id, {
         ...(status ? { status } : {}),
         ...(resultSummary != null ? { resultSummary } : {}),
@@ -86,7 +89,10 @@ export function createCommentRpc(deps: CommentRpcDeps) {
     agent: { description: 'Remove a comment/idea from the store (dismiss it)' },
     args: [z.object({ id: z.string() })],
     returns: z.object({ deleted: z.boolean() }),
-    handler: async ({ id }) => ({ deleted: deps.store.delete(id) }),
+    handler: async ({ id }) => {
+      assertCan('comment:delete')
+      return { deleted: deps.store.delete(id) }
+    },
   })
 
   return { listComments, submitComment, updateComment, deleteComment }

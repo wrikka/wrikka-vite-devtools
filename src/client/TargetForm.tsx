@@ -1,6 +1,6 @@
-import { Show, createMemo, createSignal, type VoidProps } from 'solid-js'
+import { For, Show, createMemo, type VoidProps } from 'solid-js'
 import type { Selection } from '../protocol'
-import { field, hint, row } from '../ui/bits'
+import { card, field, hint, row, sectionLabel, tab, tabBar, tabOn } from '../ui/bits'
 
 export interface TargetFormProps {
   page(): string
@@ -11,6 +11,8 @@ export interface TargetFormProps {
   onCssPath(v: string): void
 }
 
+const MODES: Selection['mode'][] = ['page', 'element', 'component']
+
 /**
  * Names the page and node a hub-side comment targets. The hub iframe url is a devtools
  * route, so the app url has to be typed rather than read from `window.location`.
@@ -19,7 +21,8 @@ export default function TargetForm(p: VoidProps<TargetFormProps>) {
   const summary = createMemo(() => `${p.mode()} @ ${p.cssPath() || 'html'} — ${p.page()}`)
 
   return (
-    <div class="flex flex-col gap-2">
+    <div class={`${card} gap-2`}>
+      <span class={sectionLabel}>target</span>
       <input
         class={field}
         type="text"
@@ -29,19 +32,18 @@ export default function TargetForm(p: VoidProps<TargetFormProps>) {
         onInput={(e) => p.onPage(e.currentTarget.value)}
       />
       <div class={row}>
-        <select
-          class={field}
-          aria-label="Target mode"
-          value={p.mode()}
-          onChange={(e) => p.onMode(e.currentTarget.value as Selection['mode'])}
-        >
-          <option value="page">page</option>
-          <option value="element">element</option>
-          <option value="component">component</option>
-        </select>
+        <div class={tabBar} role="group" aria-label="Target mode">
+          <For each={MODES}>
+            {(m) => (
+              <button class={`${tab} ${p.mode() === m ? tabOn : ''}`} aria-pressed={p.mode() === m} onClick={() => p.onMode(m)}>
+                {m}
+              </button>
+            )}
+          </For>
+        </div>
         <Show when={p.mode() !== 'page'}>
           <input
-            class={field}
+            class={`${field} flex-1 font-mono`}
             type="text"
             aria-label="CSS path"
             placeholder="main > div.card"

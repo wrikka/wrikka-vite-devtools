@@ -16,13 +16,20 @@ function which(cmd: string): string | undefined {
   }
 }
 
+/** `where.exe` costs ~0.5 s per probe on Windows, so the panels reuse one result per half minute. */
+const DETECT_TTL_MS = 30_000
+let detected: { at: number; available: AgentDriver[] } | undefined
+
 export function detectDrivers(): AgentDriver[] {
-  return DRIVERS.filter((d) => which(d))
+  if (detected && Date.now() - detected.at < DETECT_TTL_MS) return detected.available
+  const available = DRIVERS.filter((d) => which(d))
+  detected = { at: Date.now(), available }
+  return available
 }
 
 export function pickDriver(preference: DriverPreference): AgentDriver | undefined {
   if (preference !== 'auto') return which(preference) ? preference : undefined
-  return detectDrivers()[0]
+  return DRIVERS.find((d) => which(d))
 }
 
 /**

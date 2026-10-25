@@ -3,6 +3,8 @@ import { join, resolve } from 'node:path'
 import { defineRpcFunction } from 'devframe'
 import { z } from 'zod'
 import pkg from '../../package.json'
+import { RoleSchema } from '../protocol'
+import { capabilities, currentRole } from './access'
 
 const MAX_ENTRIES = 200
 const DEFAULT_LIMIT = 50
@@ -24,6 +26,9 @@ export const getMeta = defineRpcFunction({
     platform: z.string(),
     cwd: z.string(),
     generatedAt: z.string(),
+    role: RoleSchema,
+    /** Capability ids the current role holds; empty for a viewer. */
+    capabilities: z.array(z.string()),
   }),
   handler: async () => ({
     tool: pkg.name,
@@ -31,6 +36,8 @@ export const getMeta = defineRpcFunction({
     platform: `${process.platform} ${process.arch}`,
     cwd: process.cwd(),
     generatedAt: new Date().toISOString(),
+    role: currentRole(),
+    capabilities: capabilities(),
   }),
 })
 

@@ -1,9 +1,11 @@
 import { For, Show, createSignal, onCleanup, onMount } from 'solid-js'
 import type { Selection } from '../protocol'
 import type { PanelApi } from './api'
+import { useAccess } from './access-store'
+import { showToast } from './toast'
 import { readDraft, stashDraft } from './draft-stash'
 import FocusChips, { focusPrefix, type FocusArea } from './FocusChips'
-import { btn, btnPrimary, chip, chipOn, field, hint, row } from './bits'
+import { btn, btnPrimary, card, chip, chipOn, field, hint, row, sectionLabel } from './bits'
 
 export interface ComposerProps {
   api: PanelApi
@@ -32,6 +34,7 @@ export default function Composer(p: ComposerProps) {
   const [skills, setSkills] = createSignal<{ name: string }[] | undefined>()
   const [chosen, setChosen] = createSignal<Set<string>>(new Set())
   const [focus, setFocus] = createSignal<FocusArea[]>([])
+  const access = useAccess(p.api)
 
   function remember(): void {
     clearTimeout(save)
@@ -69,6 +72,11 @@ export default function Composer(p: ComposerProps) {
   }
 
   async function submit(): Promise<void> {
+    if (!access.can('comment:write')) {
+      setMsg('read-only session — commenting is disabled')
+      showToast('read-only session — commenting is disabled', 'warn')
+      return
+    }
     const text = ta.value.trim()
     if (!text) {
       setMsg('write something first')
@@ -94,21 +102,30 @@ export default function Composer(p: ComposerProps) {
         capturePath,
       })
       setMsg(kind.value === 'comment' ? 'submitted — agent starts automatically' : 'submitted')
+      showToast(kind.value === 'comment' ? 'comment submitted — agent starting' : 'idea submitted', 'ok')
       stashDraft(p.page, { body: '', skills: [] })
       setTimeout(p.onClose, 1500)
     } catch (err) {
       setMsg(`failed: ${String(err)}`)
+      showToast(`submit failed: ${String(err)}`, 'bad')
       setBusy(false)
     }
   }
 
   return (
-    <>
+    <div class={`${card} gap-2`}>
+      <span class={sectionLabel}>comment</span>
+      <Show when={access.readOnly()}>
+        <span class={`${hint} rounded-md border border-solid border-warn/40 bg-warn/10 px-2 py-1 text-warn-ink`}>
+          Read-only session (viewer role) — comments and captures are disabled.
+        </span>
+      </Show>
       <FocusChips selected={focus()} onToggle={toggleFocus} />
       <textarea
         ref={ta}
         class={`${field} min-h-20 resize-y`}
         placeholder="What should the agent change here? (Ctrl/Cmd+Enter to submit)"
+        disabled={access.readOnly()}
         onInput={remember}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -137,6 +154,7 @@ export default function Composer(p: ComposerProps) {
               <input
                 type="checkbox"
                 checked={attach()}
+                disabled={access.readOnly()}
                 onChange={(e) => setAttach(e.currentTarget.checked)}
               />
               attach page capture
@@ -169,10 +187,10 @@ export default function Composer(p: ComposerProps) {
         <span class={`${hint} mr-auto`} role="status">
           {msg()}
         </span>
-        <button class={btnPrimary} disabled={busy()} onClick={() => void submit()}>
+        <button class={btnPrimary} disabled={busy() || access.readOnly()} onClick={() => void submit()}>
           Submit
         </button>
       </div>
-    </>
+    </div>
   )
 }

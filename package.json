@@ -2,7 +2,7 @@
   "name": "wrikka-vite-devtools",
   "version": "0.1.0",
   "type": "module",
-  "description": "Devframe devtools hub as one Vite plugin — add-ons, services, MCP included",
+  "description": "Vite devtools hub as one plugin — 19 panels, aggregated MCP, and an in-page comment→agent overlay",
   "homepage": "https://devfra.me",
   "license": "MIT",
   "exports": {

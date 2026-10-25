@@ -1,21 +1,22 @@
-import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal, type JSX } from 'solid-js'
 import type { Idea, Selection } from '../protocol'
 import type { PanelApi } from '../ui/api'
-import { btn, btnActive } from '../ui/bits'
+import { chip, hint, tab, tabBar, tabOn } from '../ui/bits'
 import Composer from '../ui/Composer'
 import Ideas from '../ui/Ideas'
 import Inbox from '../ui/Inbox'
+import { CommentIcon, ComponentIcon, PanelIcon, PinsIcon } from '../ui/icons'
 import { ideaPrefill } from '../ui/prefill'
 import { readStashedPage } from '../ui/page-stash'
 import Diagnostics from './Diagnostics'
 import TargetForm from './TargetForm'
 
 type Tab = 'inbox' | 'new' | 'ideas' | 'diagnostics'
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'inbox', label: 'Inbox' },
-  { id: 'new', label: 'New comment' },
-  { id: 'ideas', label: 'Ideas' },
-  { id: 'diagnostics', label: 'Diagnostics' },
+const TABS: { id: Tab; label: string; icon: () => JSX.Element }[] = [
+  { id: 'inbox', label: 'Inbox', icon: CommentIcon },
+  { id: 'new', label: 'New comment', icon: PinsIcon },
+  { id: 'ideas', label: 'Ideas', icon: ComponentIcon },
+  { id: 'diagnostics', label: 'Diagnostics', icon: PanelIcon },
 ]
 
 export default function App(p: { api: PanelApi }) {
@@ -42,21 +43,44 @@ export default function App(p: { api: PanelApi }) {
 
   return (
     <div class="flex min-h-screen flex-col">
-      <nav class="flex flex-wrap gap-1 border-b border-solid border-line bg-surface-raised p-2" role="tablist">
-        <For each={TABS}>
-          {(t) => (
-            <button
-              class={`${btn} ${tab() === t.id ? btnActive : ''}`}
-              role="tab"
-              aria-selected={tab() === t.id}
-              onClick={() => setTab(t.id)}
-            >
-              {t.id === 'inbox' && open() > 0 ? `${t.label} (${open()})` : t.label}
-            </button>
-          )}
-        </For>
-      </nav>
-      <main class="flex-1 p-3">
+      <header class="border-b border-solid border-line bg-linear-to-br from-accent-soft via-surface-raised to-surface px-4 pt-4 pb-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="flex size-8 items-center justify-center rounded-xl border border-solid border-line bg-accent-soft text-accent-ink">
+            <CommentIcon />
+          </span>
+          <div class="flex flex-col">
+            <h1 class="m-0 text-[15px] font-semibold tracking-tight text-ink">Wrikka devtools</h1>
+            <span class={hint}>Point at a node, leave a comment, let the agent run in your repo</span>
+          </div>
+          <Show when={page()}>
+            <span class={`${chip} ml-auto max-w-64 truncate font-mono`} title={page()}>
+              {page()}
+            </span>
+          </Show>
+        </div>
+        <nav class={`${tabBar} mt-3`} role="tablist" aria-label="Comment workspace">
+          <For each={TABS}>
+            {(t) => {
+              const Icon = t.icon
+              return (
+                <button
+                  class={`${tab} ${tab() === t.id ? tabOn : ''}`}
+                  role="tab"
+                  aria-selected={tab() === t.id}
+                  onClick={() => setTab(t.id)}
+                >
+                  <Icon />
+                  {t.id === 'inbox' && open() > 0 ? `${t.label} (${open()})` : t.label}
+                </button>
+              )
+            }}
+          </For>
+          <Show when={open() > 0}>
+            <span class={`${hint} ml-auto px-2`}>{open()} open</span>
+          </Show>
+        </nav>
+      </header>
+      <main class="flex-1 p-4">
         <Show when={tab() === 'inbox'}>
           <Inbox api={p.api} onOpenCount={setOpen} />
         </Show>
@@ -85,7 +109,7 @@ export default function App(p: { api: PanelApi }) {
           </div>
         </Show>
         <Show when={tab() === 'ideas'}>
-          <Show when={page()} fallback={<p class="text-[12px] text-ink-muted">Set the target page url in the “New comment” tab first.</p>}>
+          <Show when={page()} fallback={<p class={`${hint} py-6 text-center`}>Set the target page url in the “New comment” tab first.</p>}>
             <Ideas api={p.api} page={page()} onApply={applyIdea} />
           </Show>
         </Show>

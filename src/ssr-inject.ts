@@ -9,7 +9,7 @@ import { hookHtmlResponse } from './html-stream'
  * response stream and inserts the hub client before the first `</body>`,
  * keeping streaming intact.
  */
-export function createSsrInjectPlugin(base = '/__devframes/'): Plugin {
+export function createSsrInjectPlugin(base = '/__devtools/'): Plugin {
   const embedSrc = `${base.endsWith('/') ? base : `${base}/`}embedded.js`
   return {
     name: 'wrikka-vite-devtools:ssr-inject',

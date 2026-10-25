@@ -4,15 +4,26 @@ import { defineDevframe } from 'devframe'
 import pkg from '../package.json'
 import { CommentStore } from './comment-store'
 import { createAgentRpc } from './rpc/agents'
+import { auditBundle } from './rpc/bundle'
 import { createCaptureRpc } from './rpc/capture'
 import { createCommentRpc } from './rpc/comments'
+import { auditEnv } from './rpc/env-audit'
+import { createHeadersRpc } from './rpc/headers'
+import { auditI18n } from './rpc/i18n-audit'
 import { createIdeasRpc } from './rpc/ideas'
+import { auditImports } from './rpc/imports-audit'
+import { createMcpRpc } from './rpc/mcp'
+import { createRuntimeRpc } from './rpc/runtime'
 import { createSkillsRpc } from './rpc/skills'
 import { getMeta, scanDir } from './rpc/meta'
 import { searchSource } from './rpc/search'
 import { listComponents } from './rpc/components'
 import { listRoutes } from './rpc/routes'
 import { auditSeo } from './rpc/seo'
+import { listTests, runTest } from './rpc/tests'
+import { auditTheme } from './rpc/theme-audit'
+import { roleFromEnv, setRole } from './rpc/access'
+import type { Role } from './protocol'
 import type { DriverPreference } from './agent-runner'
 
 const clientAssets = resolve(import.meta.dirname, 'client')
@@ -31,6 +42,11 @@ export interface DevframeOptions {
   agent?: UseWrikkaViteDevtoolsAgentOptions
   /** Inject the in-page comment overlay. Default true. */
   overlay?: boolean
+  /**
+   * Read/write role for this session. Defaults to `WRIKKA_DEVTOOLS_ROLE`, then
+   * `operator`. A `viewer` session keeps every scanner but refuses mutations.
+   */
+  role?: Role
 }
 
 export function defaultSkillRoots(): string[] {
@@ -48,6 +64,7 @@ export function defaultSkillRoots(): string[] {
 export function createDevframeDefinition(options: DevframeOptions = {}) {
   const preference: DriverPreference = options.agent?.driver ?? 'auto'
   const autoRun = options.agent?.autoRun !== false
+  setRole(options.role ?? roleFromEnv(process.env.WRIKKA_DEVTOOLS_ROLE))
 
   return defineDevframe({
     id: 'wrikka-vite-devtools',
@@ -93,6 +110,9 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
       const skills = createSkillsRpc({ roots: options.skillsRoots ?? defaultSkillRoots() })
       const capture = createCaptureRpc({ storageDir })
       const ideas = createIdeasRpc({ preference })
+      const mcp = createMcpRpc()
+      const headers = createHeadersRpc()
+      const runtime = createRuntimeRpc()
 
       for (const fn of [
         comments.listComments,
@@ -105,11 +125,26 @@ export function createDevframeDefinition(options: DevframeOptions = {}) {
         skills.listSkills,
         capture.saveCapture,
         capture.listCaptures,
+        capture.readCapture,
         ideas.generateIdeas,
         searchSource,
         listComponents,
         listRoutes,
         auditSeo,
+        auditTheme,
+        auditEnv,
+        auditImports,
+        auditI18n,
+        auditBundle,
+        listTests,
+        runTest,
+        mcp.listTools,
+        mcp.callTool,
+        headers.auditHeaders,
+        runtime.pushRuntimeEvent,
+        runtime.getRuntime,
+        runtime.clearRuntime,
+        runtime.replayRequest,
       ]) {
         us.rpc.register(fn)
       }

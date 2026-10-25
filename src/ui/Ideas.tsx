@@ -1,7 +1,7 @@
 import { For, Show, createSignal } from 'solid-js'
 import type { Idea } from '../protocol'
 import type { PanelApi } from './api'
-import { btnPrimary, card, field, hint, row } from './bits'
+import { btnPrimary, card, empty, field, hint, row, tonePill, type Tone } from './bits'
 
 export interface IdeasProps {
   api: PanelApi
@@ -11,10 +11,10 @@ export interface IdeasProps {
   onApply?(idea: Idea): void
 }
 
-const impactColors: Record<string, string> = {
-  High: 'bg-bad/20 text-bad-ink',
-  Medium: 'bg-warn/20 text-warn-ink',
-  Low: 'bg-ok/20 text-ok-ink',
+const impactTones: Record<string, Tone> = {
+  High: 'bad',
+  Medium: 'warn',
+  Low: 'ok',
 }
 
 export default function Ideas(p: IdeasProps) {
@@ -67,24 +67,31 @@ export default function Ideas(p: IdeasProps) {
         </span>
       </div>
       <div class="flex flex-col gap-2">
-        <For each={ideas()}>{(idea) => (
-          <div class={card}>
-            <div class={row}>
-              <span
-                class={`w-fit rounded border border-solid border-line px-1.5 text-[10px] font-bold uppercase ${impactColors[idea.impact] ?? 'text-ink-muted'}`}
-              >
-                {idea.impact}
-              </span>
-              <h3 class="m-0 text-[13px] font-medium">{idea.title}</h3>
+        <Show
+          when={ideas().length > 0}
+          fallback={
+            <p class={empty}>
+              No ideas yet.
+              <br />
+              Pick a focus (optional) and press Generate — the agent CLI reads the page and proposes changes.
+            </p>
+          }
+        >
+          <For each={ideas()}>{(idea) => (
+            <div class={card}>
+              <div class={row}>
+                <span class={tonePill(impactTones[idea.impact] ?? 'accent')}>{idea.impact}</span>
+                <h3 class="m-0 text-[13px] font-medium text-ink">{idea.title}</h3>
+              </div>
+              <div class={hint}>{idea.detail}</div>
+              <Show when={p.onApply}>
+                <button class={`${btnPrimary} w-fit`} onClick={() => p.onApply?.(idea)}>
+                  Apply
+                </button>
+              </Show>
             </div>
-            <div class={hint}>{idea.detail}</div>
-            <Show when={p.onApply}>
-              <button class={btnPrimary} onClick={() => p.onApply?.(idea)}>
-                Apply
-              </button>
-            </Show>
-          </div>
-        )}</For>
+          )}</For>
+        </Show>
       </div>
     </>
   )

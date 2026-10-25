@@ -44,10 +44,11 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   (vite `-c vite.overlay.config.ts` → `dist/overlay/index.mjs`, then `scripts/inline-overlay-css.ts`
   folds the generated stylesheet into that one file) → `build:client` (vite → `dist/client`)
 - `bun run playground` — build, then serve `examples/playground` on `:5199`
-  → hub `http://localhost:5199/__devframes/`
+  → hub `http://localhost:5199/__devtools/`
 - `bun run typecheck` — `bun check` over `src` + the build configs
+- `bun test` — the Bun test suite (`src/**/*.test.ts`); run it with the typecheck before every commit
 - CI (`.github/workflows/publish.yml`): `bun install --frozen-lockfile` → `bun run build` →
-  `bunx --bun pkg-pr-new publish` — no lint/test step, so typecheck + build are the gate
+  `bunx --bun pkg-pr-new publish` — no test step, so run `bun run typecheck && bun test` locally as the gate
 
 ### 3. Follow Architecture
 
@@ -56,7 +57,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    context) → `agent-runner.ts` / `comment-store.ts` / `prompts.ts` (infrastructure). `index.ts` is
    the only barrel. Browser code shared by the overlay and the hub client lives in `src/ui/`
    (components, `bits.ts` class tokens, `api.ts` panel contract, `connect.ts` panel bridge) —
-   `src/overlay/ui/` holds only the in-page chrome (`Pill`, `Panel`, `Pins`).
+   `src/overlay/ui/` holds only the in-page chrome (`App`, `Panel`, `Pill`, `Pins`,
+   `QuickComposer`) plus `collectors.ts` for the element/framework snapshot.
 2. Client injection has two paths: the hub's `transformIndexHtml` (file-backed `index.html` only)
    and `ssr-inject.ts` — a dev-only middleware whose stream patching lives in `html-stream.ts`
    (`hookHtmlResponse`) and inserts `<base>embedded.js` before the first `</body>` of a streamed
@@ -64,27 +66,42 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    when the hub already injected). Keep the two paths idempotent against each other when touching
    either.
 3. Overlay (`src/overlay/`) is browser-only and runs as a dock page-script, UI in Solid + UnoCSS:
-   `host.ts` (single shadow host + inlined `<style>`) → `picker.ts` (capture-phase highlight) →
-   `frameworks.ts` (element description) → `hub.ts` (hub base from the served module URL) →
-   `ui/` chrome (`Pill` bottom-right toolbar, `Panel` dialog shell, `Pins` annotations + bubbles,
-   refreshed from the 5s poll) plus the shared `src/ui/` components (`Composer`) → `main.tsx`
-   (`mountOverlay()` + guarded self-call, panel surface via `connectPanelApi()`).
-   The picker stays imperative DOM (`picker.ts`, `anchor.ts`); only the chrome is Solid.
+   `host.ts` (single shadow host + inlined `<style>`) → `frameworks.ts` (element description) →
+   `hub.ts` (hub base from the served module URL) → `ui/` chrome (`Pill` — one icon anchored
+   bottom-left at `left-14`, clear of the hub's 40 px rail, `QuickComposer` — inline body, `@`
+   route mention list, clickable start chips, Pins toggle and hub link, `Panel` shell, `Pins`
+   annotations + bubbles refreshed from the 5s poll) plus the shared `src/ui/` components →
+   `main.tsx` (`mountOverlay()` + guarded self-call, panel surface via `connectPanelApi()`).
+   There is no element picker/inspector mode: the composer targets a route (`@` mention or the
+   current path) and the target element is captured once when the icon opens. Pins stay
+   imperative DOM (`anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
    and the MCP suffix (`wrikka-vite-devtools_submit-comment`). Never rename without updating `USAGE.md` §5.
 5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
    the devframe shared-state `comments` slice; agent output streams on the `agent-logs` channel.
 6. New option surface goes through `UseWrikkaViteDevtoolsOptions` → `DevframeOptions`; keep both JSDoc'd, they
-   are copied into `README.md` / `USAGE.md` tables.
+   are copied into `README.md` / `USAGE.md` tables. `role` (`'operator' | 'viewer'`, default from
+   `WRIKKA_DEVTOOLS_ROLE`) is resolved once in `createDevframeDefinition` via `setRole`; every
+   mutating RPC calls `assertCan` from `src/rpc/access.ts` and `get-meta` reports the role plus
+   `capabilities`, which the overlay and the client use to disable writes.
+7. Dock panels are one client SPA: `src/client/main.tsx` switches on `location.hash` and
+   `registerPanelDocks` frames each at `${frameBase}#/<id>`, so the hash must equal the dock id
+   (`FRAME_ID = 'wrikka-vite-devtools'`, hence `<base>wrikka-vite-devtools/#/<id>` is a direct link).
+   `#/home` is registered first and is the landing surface; the Comments panel is the frame root
+   with no hash. There are 19 routes in total — Home, Comments, Components, Routes & SEO, Solid
+   and the 14 audits. Adding a panel means the key in `UseWrikkaViteDevtoolsPluginKey` +
+   `DOCK_ONLY` + `DEFAULT_PLUGINS`, an entry in the `panels` array, a route in `main.tsx`, and a
+   row in its docs — no dock without a route.
 
 ### 4. Verify A Change
 
-1. `bun run build && bun run typecheck` — both must be clean.
-2. `bun run playground`, then in the browser: pick an element → comment with a skill + capture →
-   Inbox shows the run streaming → status flips to `done`/`failed`.
+1. `bun run build && bun run typecheck && bun test` — all three must be clean.
+2. `bun run playground`, then in the browser: click the bottom-left icon → type `@` and pick a route →
+   add a skill or capture → submit → the hub **Comments** tab shows the run streaming → status flips
+   to `done`/`failed`. Check the icon clears the 40 px dock rail and the `@` list filters as you type.
 3. `curl` the MCP endpoint with an `Origin` header and confirm `tools/list` contains every
-   `wrikka-vite-devtools_*` id from `USAGE.md` §5.
+   `wrikka-vite-devtools_*` id from `USAGE.md` §5; group the tools in the **MCP Playground** panel.
 4. Agent e2e (real CLI runs) happens **only** in `examples/playground` — never point a comment run at
    another repo.
 
@@ -124,8 +141,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 - `devframe.ts` resolves `dist/overlay/index.mjs` at runtime, so the overlay entry name is fixed.
 - The overlay mirrors protocol types in plain TS (`src/overlay/api.ts`) instead of importing `zod` —
   keep the browser bundle free of the server validator.
-- The frame client (`src/client/`) is the hub-side inbox (comments panel, UnoCSS `presetWind4`,
-  no shortcuts). Its vite build must keep `base: './'`, the explicit
+- The frame client (`src/client/`) is the hub-side SPA (Home, Comments and the 17 audit panels,
+  UnoCSS `presetWind4`, no shortcuts). Its vite build must keep `base: './'`, the explicit
   `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))` path, and a `content.pipeline.include`
   matching plain `.ts` — each of the three fails silently otherwise (404 assets / default config /
   missing classes). See [`CONTRIBUTING.md`](CONTRIBUTING.md).
@@ -152,6 +169,6 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 ## Expected Outcome
 
 - A host project gets hub + add-ons + MCP + overlay from one plugin line
-- `bun run build` and `bun run typecheck` pass; playground shows a full comment→agent→done loop
+- `bun run build`, `bun run typecheck` and `bun test` pass; playground shows a full comment→agent→done loop
 - `USAGE.md`, `README.md` and the root skills `/use-wrikka-vite-devtools` + `/update-wrikka-vite-devtools` match the real option and RPC surface
 - Preview release published through pkg.pr.new and consumed by the host app

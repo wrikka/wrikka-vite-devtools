@@ -1,13 +1,15 @@
 import type { Plugin } from 'vite'
+import { createUi } from '@devframes/hub-ui'
 import { viteDevframeHub } from '@devframes/vite/hub'
 import { type DevframeOptions } from './devframe'
 import { createDevframes, createDockRegistrar, resolvePluginKeys, type UseWrikkaViteDevtoolsPluginKey } from './add-ons'
 import { createSsrInjectPlugin } from './ssr-inject'
+import { projectContext } from './rpc/context'
 
 export type { UseWrikkaViteDevtoolsPluginKey }
 
 export interface UseWrikkaViteDevtoolsOptions {
-  /** Mount base, default `/__devframes/` — frames live at `<base><id>/`. */
+  /** Mount base, default `/__devtools/` — frames live at `<base><id>/`. */
   base?: string
   /**
    * Plugin set to mount. Defaults to every add-on except `data-inspector`,
@@ -30,20 +32,57 @@ export interface UseWrikkaViteDevtoolsOptions {
   agent?: DevframeOptions['agent']
   /** `false` disables the in-app comment overlay dock. Default on. */
   overlay?: boolean
+  /**
+   * Session role: `operator` (default) mutates, `viewer` is read-only.
+   * Defaults to `WRIKKA_DEVTOOLS_ROLE` when set.
+   */
+  role?: DevframeOptions['role']
+  /**
+   * Where the dock appears on a first visit: a left edge rail by default.
+   * The visitor's own choice wins after that.
+   */
+  dock?: {
+    mode?: 'float' | 'edge'
+    position?: 'left' | 'right' | 'top' | 'bottom'
+  }
+}
+
+/**
+ * Publishes the served project to the RPC handlers before any scanner runs.
+ * The library itself is imported from `dist/`, so `process.cwd()` alone would
+ * point at the wrong tree when the hub is consumed from a workspace root.
+ */
+function projectContextPlugin(base: string): Plugin {
+  return {
+    name: 'wrikka-vite-devtools:project-context',
+    enforce: 'pre',
+    configResolved(config) {
+      projectContext.root = config.root
+    },
+    configureServer(server) {
+      projectContext.server = server
+      projectContext.base = base
+    },
+  }
 }
 
 export function useWrikkaViteDevtools(options: UseWrikkaViteDevtoolsOptions = {}): Plugin[] {
   const keys = resolvePluginKeys(options.plugins)
+  // Explicit default: the hub package's own default is still `/__devframes/`.
+  const base = options.base ?? '/__devtools/'
+  const dock = { mode: 'edge', position: 'left', ...options.dock } as const
   return [
+    projectContextPlugin(base),
     // SSR frameworks stream their own document, so transformIndexHtml never
     // runs there — this injects the hub client (and dock) into streamed HTML.
-    ...(options.overlay === false ? [] : [createSsrInjectPlugin(options.base)]),
+    ...(options.overlay === false ? [] : [createSsrInjectPlugin(base)]),
     viteDevframeHub({
-      base: options.base,
+      base,
       devframes: createDevframes(keys, options),
-      ...(keys.includes('unocss') || keys.includes('components') || keys.includes('routes')
-        ? { configure: createDockRegistrar(keys) }
-        : {}),
+      configure: createDockRegistrar(keys),
+      ui: createUi({
+        dockPreferences: { defaultMode: dock.mode, defaultPosition: dock.position },
+      }),
       // @devframes/service-{open,git,shiki} are wired by the plugins' own
       // service descriptors — installed as deps, built by the hub at the
       // ready barrier, no host wiring needed here.

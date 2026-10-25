@@ -20,10 +20,63 @@ export type UseWrikkaViteDevtoolsPluginKey =
   | 'code-server'
   /** Dock-only key: iframe of the `@unocss/vite` inspector, no devframe. */
   | 'unocss'
+  /** Dock-only key: this package's own client at `#/home` — the hub's landing panel. */
+  | 'home'
   /** Dock-only key: this package's own client at `#/components`. */
   | 'components'
   /** Dock-only key: this package's own client at `#/routes` (routes + SEO audit). */
   | 'routes'
+  /** Dock-only key: this package's own client at `#/solid` (solid-devtools owner tree). */
+  | 'solid'
+  /** Theme & tokens: theme.ts palette vs utilities actually used in source. */
+  | 'theme'
+  /** Network: fetch/XHR captured by the page overlay. */
+  | 'network'
+  /** Runs & queue: every agent run with duration, status, cancel. */
+  | 'runs'
+  /** MCP playground: list and call the hub's own MCP tools. */
+  | 'mcp-playground'
+  /** Performance: web vitals + slow resources from the overlay. */
+  | 'performance'
+  /** Console & logs: page console merged with agent streams. */
+  | 'console'
+  /** Bundle: largest client modules from the Vite module graph. */
+  | 'bundle'
+  /** Env & config: `import.meta.env` references vs `.env` files, redacted. */
+  | 'env'
+  /** Visual diff: saved captures compared against the live page. */
+  | 'visual-diff'
+  /** Tests: locate the spec for a source file and run it. */
+  | 'tests'
+  /** State snapshots: signals/storage samples captured by the overlay. */
+  | 'state'
+  /** Import graph: importers and unused exports per file. */
+  | 'imports'
+  /** i18n: missing keys, hardcoded copy, per-locale coverage. */
+  | 'i18n'
+  /** Security headers: CSP/HSTS/COOP on served HTML. */
+  | 'security'
+
+type DockOnlyKey =
+  | 'home'
+  | 'unocss'
+  | 'components'
+  | 'routes'
+  | 'solid'
+  | 'theme'
+  | 'network'
+  | 'runs'
+  | 'mcp-playground'
+  | 'performance'
+  | 'console'
+  | 'bundle'
+  | 'env'
+  | 'visual-diff'
+  | 'tests'
+  | 'state'
+  | 'imports'
+  | 'i18n'
+  | 'security'
 
 /** Where `@unocss/vite` serves its inspector UI — the `unocss` dock frames this. */
 const UNOCSS_INSPECTOR_BASE = '/__unocss/'
@@ -32,7 +85,27 @@ const UNOCSS_INSPECTOR_BASE = '/__unocss/'
 const FRAME_ID = 'wrikka-vite-devtools'
 
 /** Keys that register a dock but mount no devframe of their own. */
-const DOCK_ONLY = new Set<UseWrikkaViteDevtoolsPluginKey>(['unocss', 'components', 'routes'])
+const DOCK_ONLY = new Set<UseWrikkaViteDevtoolsPluginKey>([
+  'home',
+  'unocss',
+  'components',
+  'routes',
+  'solid',
+  'theme',
+  'network',
+  'runs',
+  'mcp-playground',
+  'performance',
+  'console',
+  'bundle',
+  'env',
+  'visual-diff',
+  'tests',
+  'state',
+  'imports',
+  'i18n',
+  'security',
+])
 
 const DEFAULT_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
   'wrikka-vite-devtools',
@@ -42,8 +115,24 @@ const DEFAULT_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
   'git',
   'assets',
   'terminals',
+  'home',
   'components',
   'routes',
+  'solid',
+  'theme',
+  'network',
+  'runs',
+  'mcp-playground',
+  'performance',
+  'console',
+  'bundle',
+  'env',
+  'visual-diff',
+  'tests',
+  'state',
+  'imports',
+  'i18n',
+  'security',
 ]
 
 const ALL_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
@@ -65,7 +154,7 @@ export function resolvePluginKeys(
 
 type Factory = (options: DevframeOptions) => ReturnType<typeof createInspectDevframe> | Promise<ReturnType<typeof createInspectDevframe>>
 
-type DevframeKey = Exclude<UseWrikkaViteDevtoolsPluginKey, 'unocss' | 'components' | 'routes'>
+type DevframeKey = Exclude<UseWrikkaViteDevtoolsPluginKey, DockOnlyKey>
 
 const factories: Record<DevframeKey, Factory> = {
   'wrikka-vite-devtools': createDevframeDefinition,
@@ -113,17 +202,45 @@ export function registerUnocssDock(ctx: DevframeHubContext) {
 }
 
 /**
- * `components` and `routes` are pages of this package's own client SPA, so they
- * frame the already-mounted devframe with a hash route instead of shipping a
- * second build. No-op when the devframe itself is not mounted (its RPCs live
- * there) or when neither key is selected.
+ * Every dock-only key is a page of this package's own client SPA, so they frame
+ * the already-mounted devframe with a hash route instead of shipping a second
+ * build. No-op when the devframe itself is not mounted (its RPCs live there) or
+ * when none of those keys is selected.
  */
 export function registerPanelDocks(ctx: DevframeHubContext, keys: UseWrikkaViteDevtoolsPluginKey[]): void {
   const base = ctx.frames.find((f) => f.id === FRAME_ID)?.base
   if (!base) return
-  const panels: { key: UseWrikkaViteDevtoolsPluginKey; id: string; title: string; icon: string }[] = [
-    { key: 'components', id: 'components', title: 'Components', icon: 'ph:lego-duotone' },
-    { key: 'routes', id: 'routes', title: 'Routes & SEO', icon: 'ph:tree-structure-duotone' },
+  const panels: {
+    key: DockOnlyKey
+    id: string
+    title: string
+    icon: string
+    category: string
+  }[] = [
+    { key: 'home', id: 'home', title: 'Home', icon: 'ph:house-duotone', category: 'project' },
+    { key: 'components', id: 'components', title: 'Components', icon: 'ph:lego-duotone', category: 'project' },
+    { key: 'routes', id: 'routes', title: 'Routes & SEO', icon: 'ph:tree-structure-duotone', category: 'project' },
+    { key: 'solid', id: 'solid', title: 'Solid', icon: 'ph:atom-duotone', category: 'framework' },
+    { key: 'theme', id: 'theme', title: 'Theme & Tokens', icon: 'ph:swatches-duotone', category: 'source' },
+    { key: 'network', id: 'network', title: 'Network', icon: 'ph:globe-hemisphere-west-duotone', category: 'runtime' },
+    { key: 'runs', id: 'runs', title: 'Runs & Queue', icon: 'ph:queue-duotone', category: 'agent' },
+    {
+      key: 'mcp-playground',
+      id: 'mcp-playground',
+      title: 'MCP Playground',
+      icon: 'ph:plugs-connected-duotone',
+      category: 'agent',
+    },
+    { key: 'performance', id: 'performance', title: 'Performance', icon: 'ph:gauge-duotone', category: 'runtime' },
+    { key: 'console', id: 'console', title: 'Console & Logs', icon: 'ph:terminal-window-duotone', category: 'runtime' },
+    { key: 'bundle', id: 'bundle', title: 'Bundle', icon: 'ph:package-duotone', category: 'build' },
+    { key: 'env', id: 'env', title: 'Env & Config', icon: 'ph:key-duotone', category: 'build' },
+    { key: 'visual-diff', id: 'visual-diff', title: 'Visual Diff', icon: 'ph:columns-duotone', category: 'quality' },
+    { key: 'tests', id: 'tests', title: 'Tests', icon: 'ph:flask-duotone', category: 'quality' },
+    { key: 'state', id: 'state', title: 'State Snapshots', icon: 'ph:database-duotone', category: 'runtime' },
+    { key: 'imports', id: 'imports', title: 'Import Graph', icon: 'ph:graph-duotone', category: 'build' },
+    { key: 'i18n', id: 'i18n', title: 'i18n', icon: 'ph:translate-duotone', category: 'source' },
+    { key: 'security', id: 'security', title: 'Security Headers', icon: 'ph:shield-check-duotone', category: 'quality' },
   ]
   for (const p of panels) {
     if (!keys.includes(p.key)) continue
@@ -133,7 +250,7 @@ export function registerPanelDocks(ctx: DevframeHubContext, keys: UseWrikkaViteD
       icon: p.icon,
       type: 'iframe',
       url: `${base}#/${p.id}`,
-      category: 'project',
+      category: p.category,
       addressBar: { back: true, reload: true, openExternal: true },
     })
   }

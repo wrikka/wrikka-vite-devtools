@@ -1,4 +1,4 @@
-const DEFAULT_HUB_BASE = '/__devframes/'
+const DEFAULT_HUB_BASE = '/__devtools/'
 const PAGE_SCRIPT_MARKER = '__page-script/'
 
 /**

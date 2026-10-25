@@ -4,6 +4,7 @@ import type { CommentStore } from '../comment-store'
 import type { AgentDriver, DriverPreference } from '../agent-runner'
 import { detectDrivers, lastSummary, pickDriver, runOnce } from '../agent-runner'
 import { buildCommentPrompt } from '../prompts'
+import { assertCan } from './access'
 
 /** Structural slice of `us.rpc.streaming.create('agent-logs')`. */
 export interface LogsStream {
@@ -43,7 +44,11 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     if (!comment) return { started: false, reason: 'comment not found' }
     const driver = resolveDriver()
     if (!driver) {
-      deps.store.update(commentId, { status: 'failed', resultSummary: 'no agent CLI found (install claude, codex, or opencode)' })
+      deps.store.update(commentId, {
+        status: 'failed',
+        finishedAt: new Date().toISOString(),
+        resultSummary: 'no agent CLI found (install claude, codex, or opencode)',
+      })
       return { started: false, reason: 'no agent CLI found' }
     }
 
@@ -51,7 +56,13 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     const controller = new AbortController()
     running.add(commentId)
     controllers.set(commentId, controller)
-    deps.store.update(commentId, { status: 'running', streamId, resultSummary: undefined })
+    deps.store.update(commentId, {
+      status: 'running',
+      streamId,
+      startedAt: new Date().toISOString(),
+      finishedAt: undefined,
+      resultSummary: undefined,
+    })
     const stream = deps.channel.start({ id: streamId })
     stream.signal.addEventListener('abort', () => controller.abort(), { once: true })
     stream.write(`[${driver}] working on comment ${commentId} in ${process.cwd()}\n`)
@@ -74,6 +85,7 @@ export function createAgentRpc(deps: AgentRpcDeps) {
         stream.close()
         deps.store.update(commentId, {
           status: cancelled ? 'failed' : result.ok ? 'done' : 'failed',
+          finishedAt: new Date().toISOString(),
           resultSummary: cancelled
             ? 'cancelled by user'
             : (result.ok ? lastSummary(result.output) : result.error ?? lastSummary(result.output)).slice(0, 1000),
@@ -81,7 +93,11 @@ export function createAgentRpc(deps: AgentRpcDeps) {
       })
       .catch((err: unknown) => {
         stream.error(err)
-        deps.store.update(commentId, { status: 'failed', resultSummary: String(err).slice(0, 500) })
+        deps.store.update(commentId, {
+          status: 'failed',
+          finishedAt: new Date().toISOString(),
+          resultSummary: String(err).slice(0, 500),
+        })
       })
       .finally(() => {
         running.delete(commentId)
@@ -98,7 +114,10 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     agent: { description: 'Start (or report on) an agent-CLI run for a queued comment; logs stream on channel agent-logs' },
     args: [z.object({ commentId: z.string() })],
     returns: z.object({ started: z.boolean(), streamId: z.string().optional(), reason: z.string().optional() }),
-    handler: async ({ commentId }) => run(commentId),
+    handler: async ({ commentId }) => {
+      assertCan('run:start')
+      return run(commentId)
+    },
   })
 
   const cancelAgentRpc = defineRpcFunction({
@@ -108,7 +127,10 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     agent: { description: 'Abort the running agent CLI for a comment; marks it failed (cancelled by user)' },
     args: [z.object({ commentId: z.string() })],
     returns: z.object({ cancelled: z.boolean() }),
-    handler: async ({ commentId }) => ({ cancelled: cancel(commentId) }),
+    handler: async ({ commentId }) => {
+      assertCan('run:cancel')
+      return { cancelled: cancel(commentId) }
+    },
   })
 
   const runnerInfo = defineRpcFunction({
@@ -118,11 +140,16 @@ export function createAgentRpc(deps: AgentRpcDeps) {
     args: [],
     agent: { description: 'Which agent CLI driver is active and which CLIs are installed' },
     returns: z.object({ preference: z.string(), driver: z.string().nullable(), available: z.array(z.string()) }),
-    handler: async () => ({
-      preference: deps.preference,
-      driver: resolveDriver() ?? null,
-      available: detectDrivers(),
-    }),
+    handler: async () => {
+      const available = detectDrivers()
+      const active =
+        deps.preference === 'auto'
+          ? available[0]
+          : available.includes(deps.preference)
+            ? deps.preference
+            : undefined
+      return { preference: deps.preference, driver: active ?? null, available: [...available] }
+    },
   })
 
   return { runAgentRpc, cancelAgentRpc, runnerInfo, run, cancel }
