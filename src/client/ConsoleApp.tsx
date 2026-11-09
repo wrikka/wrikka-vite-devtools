@@ -1,33 +1,14 @@
 import { For, Show, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { btn, hint, row, sectionLabel, tonePill, type Tone } from '../ui/bits'
+import { btn, hint, kbd, panelCard, row, sectionLabel, tonePill } from '../ui/bits'
+import { BarList } from '../ui/charts'
+import Segmented from '../ui/Segmented'
 import SendToAgent from '../ui/SendToAgent'
+import ConsoleDetail, { type Line } from './ConsoleDetail'
+import { FILTERS, LEVEL_BAR, LEVEL_TONE, asLevel, type Filter, type Level } from './console-levels'
 import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
 import { fmtWhen } from './format'
 import { createRuntimeFeed, str } from './runtimeFeed'
-
-type Level = 'error' | 'warn' | 'log' | 'info' | 'debug'
-type Filter = 'all' | Level
-
-const FILTERS: Filter[] = ['all', 'error', 'warn', 'log', 'info', 'debug']
-
-const LEVEL_TONE: Record<Filter, Tone> = {
-  all: 'accent',
-  error: 'bad',
-  warn: 'warn',
-  log: 'info',
-  info: 'accent',
-  debug: 'ok',
-}
-
-interface Line {
-  id?: number
-  at: number
-  level: Filter
-  source: 'page' | 'agent'
-  text: string
-  stack?: string
-}
 
 interface RunRow {
   id: string
@@ -36,9 +17,7 @@ interface RunRow {
   streamId?: string
 }
 
-function asLevel(value: string): Level {
-  return value === 'error' || value === 'warn' || value === 'info' || value === 'debug' ? value : 'log'
-}
+const LEVELS: Level[] = ['error', 'warn', 'log', 'info', 'debug']
 
 /** Page console traffic merges with the raw output of running agent CLIs, newest first. */
 export default function ConsoleApp(p: { api: PanelApi }) {
@@ -118,6 +97,12 @@ export default function ConsoleApp(p: { api: PanelApi }) {
     })),
   )
 
+  const counts = createMemo(() => {
+    const out: Record<Level, number> = { error: 0, warn: 0, log: 0, info: 0, debug: 0 }
+    for (const line of pageLines()) out[line.level as Level] += 1
+    return out
+  })
+
   const timeline = createMemo<Line[]>(() =>
     [...pageLines(), ...agentLines()].sort((a, b) => b.at - a.at),
   )
@@ -128,15 +113,12 @@ export default function ConsoleApp(p: { api: PanelApi }) {
     return timeline().filter((line) => line.source === 'page' && line.level === active)
   })
 
-  const stats = createMemo(() => {
-    const lines = pageLines()
-    return {
-      errors: lines.filter((line) => line.level === 'error').length,
-      warnings: lines.filter((line) => line.level === 'warn').length,
-      logs: lines.length,
-      agent: agentLines().length,
-    }
-  })
+  const stats = createMemo(() => ({
+    errors: counts().error,
+    warnings: counts().warn,
+    logs: pageLines().length,
+    agent: agentLines().length,
+  }))
 
   const current = createMemo<Line | undefined>(() => {
     const id = selected()
@@ -173,14 +155,16 @@ export default function ConsoleApp(p: { api: PanelApi }) {
       />
 
       <div class={row}>
-        <For each={FILTERS}>{(level) => (
-          <button
-            class={`${btn} ${filter() === level ? 'border-accent bg-control-hover' : ''}`}
-            onClick={() => setFilter(level)}
-          >
-            {level}
-          </button>
-        )}</For>
+        <Segmented
+          items={FILTERS.map((f) => ({
+            id: f,
+            label: f,
+            count: f === 'all' ? pageLines().length : counts()[f as Level],
+          }))}
+          value={filter()}
+          onChange={(id) => setFilter(id as Filter)}
+          ariaLabel="console level"
+        />
         <span class={`${hint} ml-auto`}>{agentMsg()}</span>
       </div>
 
@@ -200,14 +184,27 @@ export default function ConsoleApp(p: { api: PanelApi }) {
         />
       </Show>
 
+      <Show when={pageLines().length > 0}>
+        <div class={panelCard}>
+          <div class={row}>
+            <span class={sectionLabel}>lines by level</span>
+            <span class={`${hint} ml-auto`}>page only · agent output stays raw</span>
+          </div>
+          <BarList
+            items={LEVELS.map((level) => ({ label: level, value: counts()[level], tone: LEVEL_TONE[level] }))}
+          />
+        </div>
+      </Show>
+
       <Show when={visible().length > 0}>
         <div class="flex max-h-96 flex-col overflow-auto rounded-xl border border-solid border-line bg-surface-raised p-1">
           <For each={visible().slice(0, 400)}>{(line) => (
             <button
-              class={`flex w-full items-start gap-2 rounded-md px-2 py-1 text-left hover:bg-control ${current()?.id === line.id ? 'bg-control' : ''}`}
+              class={`flex w-full items-stretch gap-2 rounded-md px-2 py-1 text-left hover:bg-control ${current()?.id === line.id ? 'bg-control' : ''}`}
               onClick={() => setSelected(line.id)}
             >
-              <span class={`${tonePill(LEVEL_TONE[line.level])} mt-0.5 shrink-0`}>
+              <span class={`my-0.5 w-0.5 shrink-0 rounded-full ${LEVEL_BAR[line.level as Level]}`} aria-hidden />
+              <span class={`${tonePill(line.source === 'agent' ? 'info' : LEVEL_TONE[line.level])} mt-0.5 shrink-0`}>
                 {line.source === 'agent' ? 'agent' : line.level}
               </span>
               <span class="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-ink">
@@ -220,27 +217,13 @@ export default function ConsoleApp(p: { api: PanelApi }) {
       </Show>
 
       <Show when={current()}>
-        {(line) => (
-          <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
-            <div class={row}>
-              <span class={sectionLabel}>line detail</span>
-              <span class={tonePill(LEVEL_TONE[line().level])}>{line().level}</span>
-              <span class={`${hint} ml-auto`}>{fmtWhen(line().at)}</span>
-            </div>
-            <pre class="m-0 max-h-48 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-ink">
-              {line().text}
-            </pre>
-            <Show when={line().stack}>
-              <details class="text-[11px] text-ink-muted">
-                <summary class="cursor-pointer text-ink-faint">stack trace</summary>
-                <pre class="m-0 mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
-                  {line().stack}
-                </pre>
-              </details>
-            </Show>
-          </div>
-        )}
+        {(line) => <ConsoleDetail line={line()} />}
       </Show>
+
+      <div class={`${row} ${hint}`}>
+        <kbd>click</kbd>
+        <span>a line for its full text and stack</span>
+      </div>
 
       <Show when={stats().errors > 0}>
         <SendToAgent

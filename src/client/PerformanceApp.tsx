@@ -1,9 +1,11 @@
 import { For, Show, createMemo } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { grid, hint, row, sectionLabel, tile, tonePill, type Tone } from '../ui/bits'
+import { grid, hint, panelCard, row, sectionLabel, tile, tonePill, type Tone } from '../ui/bits'
+import { BarList, Gauge, Sparkline } from '../ui/charts'
 import SendToAgent from '../ui/SendToAgent'
+import { fmtMs } from './format'
+import { shortUrl } from './network-util'
 import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
-import { fmtMs, fmtWhen } from './format'
 import { bool, createRuntimeFeed, num, str } from './runtimeFeed'
 
 interface Grade {
@@ -12,12 +14,12 @@ interface Grade {
 }
 
 const TIMING_METRICS = [
-  { key: 'first-contentful-paint', label: 'FCP', budget: '≤ 1.8s good' },
-  { key: 'lcp', label: 'LCP', budget: '≤ 2.5s good' },
-  { key: 'cls', label: 'CLS', budget: '≤ 0.1 good' },
-  { key: 'ttfb', label: 'TTFB', budget: '≤ 800ms good' },
-  { key: 'domContentLoaded', label: 'DOMContentLoaded', budget: 'no budget' },
-  { key: 'load', label: 'load', budget: 'no budget' },
+  { key: 'first-contentful-paint', label: 'FCP', budget: '≤ 1.8s good', max: 1800 },
+  { key: 'lcp', label: 'LCP', budget: '≤ 2.5s good', max: 2500 },
+  { key: 'cls', label: 'CLS', budget: '≤ 0.1 good', max: 0.1 },
+  { key: 'ttfb', label: 'TTFB', budget: '≤ 800ms good', max: 800 },
+  { key: 'domContentLoaded', label: 'DOMContentLoaded', budget: 'no budget', max: 0 },
+  { key: 'load', label: 'load', budget: 'no budget', max: 0 },
 ]
 
 function grade(metric: string, value: number): Grade {
@@ -34,6 +36,10 @@ function grade(metric: string, value: number): Grade {
     return value <= 800 ? { label: 'good', tone: 'ok' } : value <= 1800 ? { label: 'needs work', tone: 'warn' } : { label: 'poor', tone: 'bad' }
   }
   return { label: 'timing', tone: 'info' }
+}
+
+function reading(key: string, value: number): string {
+  return key === 'cls' ? value.toFixed(3) : fmtMs(value)
 }
 
 export default function PerformanceApp(p: { api: PanelApi }) {
@@ -61,11 +67,17 @@ export default function PerformanceApp(p: { api: PanelApi }) {
     })
   })
 
+  const lcpSamples = createMemo(() =>
+    feed.events()
+      .filter((ev) => ev.kind === 'vital' && str(ev.data, 'metric') === 'lcp')
+      .map((ev) => num(ev.data, 'value'))
+      .slice(-40),
+  )
+
   const slowRequests = createMemo(() =>
     feed.events()
       .filter((ev) => ev.kind === 'network' && (bool(ev.data, 'slow') || num(ev.data, 'durationMs') >= 1000))
-      .sort((a, b) => num(b.data, 'durationMs') - num(a.data, 'durationMs'))
-      .slice(0, 8),
+      .sort((a, b) => num(b.data, 'durationMs') - num(a.data, 'durationMs')),
   )
 
   const headline = createMemo(() => {
@@ -92,7 +104,7 @@ export default function PerformanceApp(p: { api: PanelApi }) {
       <StatStrip
         items={[
           {
-            value: headline().lcp ? fmtMs(headline().lcp?.value) : '—',
+            value: headline().lcp ? fmtMs(headline().lcp!.value) : '—',
             label: 'LCP',
             tone: headline().lcp?.grade.tone === 'ok' ? 'text-ok-ink' : headline().lcp?.grade.tone === 'bad' ? 'text-bad-ink' : 'text-warn-ink',
           },
@@ -101,8 +113,12 @@ export default function PerformanceApp(p: { api: PanelApi }) {
             label: 'CLS',
             tone: headline().cls?.grade.tone === 'ok' ? 'text-ok-ink' : headline().cls?.grade.tone === 'bad' ? 'text-bad-ink' : 'text-warn-ink',
           },
-          { value: headline().ttfb ? fmtMs(headline().ttfb?.value) : '—', label: 'TTFB' },
-          { value: slowRequests().length, label: 'slow requests', tone: slowRequests().length > 0 ? 'text-warn-ink' : undefined },
+          { value: headline().ttfb ? fmtMs(headline().ttfb!.value) : '—', label: 'TTFB' },
+          {
+            value: slowRequests().length,
+            label: 'slow requests',
+            tone: slowRequests().length > 0 ? 'text-warn-ink' : undefined,
+          },
         ]}
       />
 
@@ -124,29 +140,65 @@ export default function PerformanceApp(p: { api: PanelApi }) {
                 <span class="font-mono text-[12px] font-semibold text-ink">{v.label}</span>
                 <span class={`${tonePill(v.grade.tone)} ml-auto`}>{v.grade.label}</span>
               </div>
-              <span class="text-[18px] font-semibold leading-none tabular-nums text-ink">
-                {v.key === 'cls' ? v.value.toFixed(3) : fmtMs(v.value)}
-              </span>
+              <Show
+                when={v.max > 0}
+                fallback={
+                  <span class="text-[18px] font-semibold leading-none tabular-nums text-ink">
+                    {reading(v.key, v.value)}
+                  </span>
+                }
+              >
+                <Gauge
+                  value={v.value}
+                  max={v.max}
+                  label="of budget"
+                  tone={v.grade.tone}
+                  size={64}
+                  format={(n) => reading(v.key, n)}
+                />
+              </Show>
               <span class={hint}>{v.budget}</span>
             </div>
           )}</For>
         </div>
       </Show>
 
+      <Show when={lcpSamples().length > 1}>
+        <div class={panelCard}>
+          <div class={row}>
+            <span class={sectionLabel}>LCP samples</span>
+            <span class={`${hint} ml-auto`}>
+              {lcpSamples().length} observations · latest {fmtMs(lcpSamples()[lcpSamples().length - 1] ?? 0)}
+            </span>
+          </div>
+          <Sparkline
+            values={lcpSamples()}
+            width={320}
+            height={48}
+            tone={headline().lcp?.grade.tone ?? 'accent'}
+            label="largest contentful paint samples"
+          />
+        </div>
+      </Show>
+
       <Show when={slowRequests().length > 0}>
-        <div class="flex flex-col gap-1.5 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
-          <span class={sectionLabel}>slowest requests</span>
-          <For each={slowRequests()}>{(ev) => (
-            <div class={row}>
-              <span class={tonePill(num(ev.data, 'durationMs') >= 1000 ? 'bad' : 'warn')}>
-                {fmtMs(num(ev.data, 'durationMs'))}
-              </span>
-              <span class="min-w-0 flex-1 truncate font-mono text-[11px] text-ink" title={str(ev.data, 'url')}>
-                {str(ev.data, 'url')}
-              </span>
-              <span class={`${hint} shrink-0`}>{fmtWhen(ev.at)}</span>
-            </div>
-          )}</For>
+        <div class={panelCard}>
+          <div class={row}>
+            <span class={sectionLabel}>slowest requests</span>
+            <span class={`${hint} ml-auto`}>{slowRequests().length} over budget</span>
+          </div>
+          <BarList
+            items={slowRequests().slice(0, 8).map((ev) => {
+              const ms = num(ev.data, 'durationMs')
+              return {
+                label: shortUrl(str(ev.data, 'url')),
+                value: ms,
+                tone: (ms >= 1000 ? 'bad' : 'warn') as Tone,
+                hint: str(ev.data, 'url'),
+              }
+            })}
+            format={fmtMs}
+          />
         </div>
       </Show>
 
@@ -157,7 +209,7 @@ export default function PerformanceApp(p: { api: PanelApi }) {
           selection={{ mode: 'page', cssPath: '/' }}
           placeholder={
             poor() > 0
-              ? `e.g. improve LCP (${fmtMs(headline().lcp?.value)}) and explain what blocks paint`
+              ? `e.g. improve LCP (${fmtMs(headline().lcp?.value ?? 0)}) and explain what blocks paint`
               : 'e.g. why are these requests slow — find the bottleneck'
           }
         />

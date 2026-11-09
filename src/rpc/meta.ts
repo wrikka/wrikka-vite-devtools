@@ -5,6 +5,7 @@ import { z } from 'zod'
 import pkg from '../../package.json'
 import { RoleSchema } from '../protocol'
 import { capabilities, currentRole } from './access'
+import { projectContext } from './context'
 
 const MAX_ENTRIES = 200
 const DEFAULT_LIMIT = 50
@@ -29,6 +30,8 @@ export const getMeta = defineRpcFunction({
     role: RoleSchema,
     /** Capability ids the current role holds; empty for a viewer. */
     capabilities: z.array(z.string()),
+    /** Host Vite base (`/` unless the app sets one) — Canvas previews join routes onto it. */
+    hostBase: z.string(),
   }),
   handler: async () => ({
     tool: pkg.name,
@@ -38,6 +41,7 @@ export const getMeta = defineRpcFunction({
     generatedAt: new Date().toISOString(),
     role: currentRole(),
     capabilities: capabilities(),
+    hostBase: projectContext.hostBase ?? '/',
   }),
 })
 

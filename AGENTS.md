@@ -89,8 +89,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    `registerPanelDocks` frames each at `${frameBase}#/<id>`, so the hash must equal the dock id
    (`FRAME_ID = 'wrikka-vite-devtools'`, hence `<base>wrikka-vite-devtools/#/<id>` is a direct link).
    `#/home` is registered first and is the landing surface; the Comments panel is the frame root
-   with no hash. There are 19 routes in total — Home, Comments, Components, Routes & SEO, Solid
-   and the 14 audits. Adding a panel means the key in `UseWrikkaViteDevtoolsPluginKey` +
+   with no hash. There are 20 routes in total — Home, Comments, Components, Routes & SEO, Solid,
+   Canvas and the 14 audits. Adding a panel means the key in `UseWrikkaViteDevtoolsPluginKey` +
    `DOCK_ONLY` + `DEFAULT_PLUGINS`, an entry in the `panels` array, a route in `main.tsx`, and a
    row in its docs — no dock without a route.
 
@@ -141,7 +141,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 - `devframe.ts` resolves `dist/overlay/index.mjs` at runtime, so the overlay entry name is fixed.
 - The overlay mirrors protocol types in plain TS (`src/overlay/api.ts`) instead of importing `zod` —
   keep the browser bundle free of the server validator.
-- The frame client (`src/client/`) is the hub-side SPA (Home, Comments and the 17 audit panels,
+- The frame client (`src/client/`) is the hub-side SPA (Home, Comments, Canvas and the 17 audit panels,
   UnoCSS `presetWind4`, no shortcuts). Its vite build must keep `base: './'`, the explicit
   `UnoCSS(resolve(import.meta.dirname, 'uno.config.ts'))` path, and a `content.pipeline.include`
   matching plain `.ts` — each of the three fails silently otherwise (404 assets / default config /

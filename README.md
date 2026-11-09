@@ -98,6 +98,7 @@ is linkable without a second build; Comments is the frame root and carries no ha
 | 17 | Import Graph | `#/imports` | importers and unused exports per file |
 | 18 | i18n | `#/i18n` | missing keys, hardcoded copy, per-locale coverage |
 | 19 | Security Headers | `#/security` | CSP, HSTS and COOP on the HTML the dev server serves |
+| 20 | Canvas | `#/canvas` | Figma-like board: page artboards and component cards, pan and zoom |
 
 ## Usage
 

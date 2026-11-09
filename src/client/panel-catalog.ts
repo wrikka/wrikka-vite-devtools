@@ -177,6 +177,14 @@ export const PANELS: PanelInfo[] = [
     category: 'quality',
     monogram: 'SC',
   },
+  {
+    hash: 'canvas',
+    dockId: 'canvas',
+    title: 'Canvas',
+    description: 'Figma-like board: every page artboard and component card, pan and zoom.',
+    category: 'project',
+    monogram: 'CV',
+  },
 ]
 
 const byHash = new Map(PANELS.map((p) => [p.hash, p]))

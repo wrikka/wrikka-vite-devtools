@@ -45,7 +45,15 @@ export const empty =
   'rounded-xl border border-dashed border-line bg-surface-raised/60 px-4 py-8 text-center text-[12px] text-ink-muted'
 
 export const meter = 'h-1 w-full overflow-hidden rounded-full bg-control'
+export const barTrack = 'block h-1.5 w-full overflow-hidden rounded-full bg-control'
+export const barFill = 'block h-full rounded-full'
 export const sectionLabel = 'text-[11px] font-semibold uppercase tracking-wide text-ink-faint'
+
+/** Toolbar strip above a panel's content. */
+export const toolbar = 'flex flex-wrap items-center gap-1.5 rounded-xl border border-solid border-line bg-surface-raised p-1.5'
+export const metricRow = 'flex items-baseline justify-between gap-2 text-[11px]'
+export const panelCard = 'flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-3'
+export const kbd = 'rounded border border-solid border-line bg-control px-1 font-mono text-[10px] text-ink-muted'
 
 /** Hero card: the one place a panel spends a gradient. */
 export const hero =
@@ -74,6 +82,11 @@ const toneColors: Record<Tone, string> = {
   warn: 'bg-warn/20 text-warn-ink',
   info: 'bg-info/20 text-info-ink',
   bad: 'bg-bad/20 text-bad-ink',
+}
+
+/** Soft filled surface in the tone's colour — for monograms and chips that set their own shape. */
+export function toneSoft(tone: Tone): string {
+  return toneColors[tone]
 }
 
 export function tonePill(tone: Tone): string {

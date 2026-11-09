@@ -7,28 +7,21 @@ import {
   card,
   chip,
   chipOn,
-  empty,
   field,
   hint,
   kindTone,
-  page,
-  pageHead,
   row,
-  stat,
-  statLabel,
-  statRow,
-  statValue,
-  title,
   tonePill,
 } from '../ui/bits'
+import { EmptyState, PanelHeader, PanelPage } from './PanelKit'
 import { mergeSeo } from './mergeSeo'
 import RouteDetail from './RouteDetail'
+import RoutesSummary from './RoutesSummary'
 
 const ORIGIN_KEY = 'wrikka:seo-origin'
 const DEFAULT_ORIGIN = 'http://localhost:5173'
 
 type KindFilter = 'all' | 'layout' | 'index' | 'page' | 'not-found'
-const KINDS: KindFilter[] = ['all', 'layout', 'index', 'page', 'not-found']
 
 /** Issue severity → the card's left edge, so a long route list scans by color. */
 function edgeOf(seo: SeoRow | undefined): string {
@@ -114,6 +107,12 @@ export default function RoutesApp(p: RoutesPanelProps) {
     }
   })
 
+  const counts = createMemo(() => {
+    const out: Record<string, number> = { layout: 0, index: 0, page: 0, 'not-found': 0 }
+    for (const r of report()?.routes ?? []) out[r.kind] = (out[r.kind] ?? 0) + 1
+    return out
+  })
+
   const rows = createMemo(() => {
     const all = report()?.routes ?? []
     const needle = query().trim().toLowerCase()
@@ -127,35 +126,16 @@ export default function RoutesApp(p: RoutesPanelProps) {
   })
 
   return (
-    <div class={page}>
-      <div class={pageHead}>
-        <h1 class={title}>Routes &amp; SEO</h1>
-        <span class={`${hint} mr-auto`}>{msg()}</span>
-        <button class={btn} disabled={busy()} onClick={() => void load()}>
-          {busy() ? 'working…' : 'Rescan source'}
-        </button>
-      </div>
+    <PanelPage>
+      <PanelHeader
+        title="Routes & SEO"
+        description={msg()}
+        busy={busy()}
+        refresh={() => void load()}
+        refreshLabel="Rescan source"
+      />
 
-      <div class={statRow}>
-        <div class={stat}>
-          <span class={statValue}>{stats().routes}</span>
-          <span class={statLabel}>routes</span>
-        </div>
-        <div class={stat}>
-          <span class={statValue}>{stats().dynamic}</span>
-          <span class={statLabel}>with params</span>
-        </div>
-        <div class={stat}>
-          <span class={statValue}>{stats().audited}</span>
-          <span class={statLabel}>fetched html</span>
-        </div>
-        <div class={stat}>
-          <span class={`${statValue} ${stats().bad > 0 ? 'text-bad-ink' : stats().warn > 0 ? 'text-warn-ink' : 'text-ink-faint'}`}>
-            {stats().bad}
-          </span>
-          <span class={statLabel}>{stats().warn > 0 ? `${stats().warn} warnings` : 'with issues'}</span>
-        </div>
-      </div>
+      <RoutesSummary stats={stats()} counts={counts()} kind={kind()} onKind={(id) => setKind(id as KindFilter)} />
 
       <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
         <div class={row}>
@@ -182,11 +162,6 @@ export default function RoutesApp(p: RoutesPanelProps) {
           onInput={(e) => setQuery(e.currentTarget.value)}
         />
         <div class={row}>
-          <For each={KINDS}>{(k) => (
-            <button class={`${chip} ${kind() === k ? chipOn : ''}`} aria-pressed={kind() === k} onClick={() => setKind(k)}>
-              {k}
-            </button>
-          )}</For>
           <button
             class={`${chip} ${issuesOnly() ? chipOn : ''}`}
             aria-pressed={issuesOnly()}
@@ -195,20 +170,20 @@ export default function RoutesApp(p: RoutesPanelProps) {
           >
             with issues only
           </button>
+          <span class={`${hint} ml-auto`}>
+            {stats().warn} warnings · {stats().bad} broken
+          </span>
         </div>
       </div>
 
       <Show when={report()?.detected === 'none'}>
-        <div class={empty}>
-          <p class="m-0 text-[13px] text-ink">No route folder found</p>
-          <p class={`${hint} mt-1`}>TanStack Router projects keep them in `src/routes`.</p>
-        </div>
+        <EmptyState
+          title="No route folder found"
+          hint="TanStack Router projects keep them in `src/routes`."
+        />
       </Show>
       <Show when={!busy() && rows().length === 0 && report()?.detected !== 'none'}>
-        <div class={empty}>
-          <p class="m-0 text-[13px] text-ink">Nothing matches</p>
-          <p class={`${hint} mt-1`}>Clear the filters or rescan.</p>
-        </div>
+        <EmptyState title="Nothing matches" hint="Clear the filters or rescan." />
       </Show>
 
       <div class="flex flex-col gap-2">
@@ -225,6 +200,6 @@ export default function RoutesApp(p: RoutesPanelProps) {
           </div>
         )}</For>
       </div>
-    </div>
+    </PanelPage>
   )
 }

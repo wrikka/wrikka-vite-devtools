@@ -56,6 +56,8 @@ export type UseWrikkaViteDevtoolsPluginKey =
   | 'i18n'
   /** Security headers: CSP/HSTS/COOP on served HTML. */
   | 'security'
+  /** Canvas: Figma-like board of page artboards and component cards. */
+  | 'canvas'
 
 type DockOnlyKey =
   | 'home'
@@ -77,6 +79,7 @@ type DockOnlyKey =
   | 'imports'
   | 'i18n'
   | 'security'
+  | 'canvas'
 
 /** Where `@unocss/vite` serves its inspector UI — the `unocss` dock frames this. */
 const UNOCSS_INSPECTOR_BASE = '/__unocss/'
@@ -105,6 +108,7 @@ const DOCK_ONLY = new Set<UseWrikkaViteDevtoolsPluginKey>([
   'imports',
   'i18n',
   'security',
+  'canvas',
 ])
 
 const DEFAULT_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
@@ -133,6 +137,7 @@ const DEFAULT_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
   'imports',
   'i18n',
   'security',
+  'canvas',
 ]
 
 const ALL_PLUGINS: UseWrikkaViteDevtoolsPluginKey[] = [
@@ -241,6 +246,7 @@ export function registerPanelDocks(ctx: DevframeHubContext, keys: UseWrikkaViteD
     { key: 'imports', id: 'imports', title: 'Import Graph', icon: 'ph:graph-duotone', category: 'build' },
     { key: 'i18n', id: 'i18n', title: 'i18n', icon: 'ph:translate-duotone', category: 'source' },
     { key: 'security', id: 'security', title: 'Security Headers', icon: 'ph:shield-check-duotone', category: 'quality' },
+    { key: 'canvas', id: 'canvas', title: 'Canvas', icon: 'ph:frame-corners-duotone', category: 'project' },
   ]
   for (const p of panels) {
     if (!keys.includes(p.key)) continue

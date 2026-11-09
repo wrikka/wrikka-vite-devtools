@@ -1,47 +1,24 @@
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { btn, chip, chipOn, grid, hint, row, sectionLabel, tile, tileOn, tonePill, type Tone } from '../ui/bits'
-import SendToAgent from '../ui/SendToAgent'
+import { btn, grid, hint, panelCard, row, sectionLabel, tile, tileOn, tonePill, type Tone } from '../ui/bits'
+import { bucketize } from '../ui/chart-math'
+import { BarList, Sparkline } from '../ui/charts'
+import Segmented from '../ui/Segmented'
 import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
 import { fmtBytes, fmtMs, fmtWhen } from './format'
+import { shortUrl, statusTone } from './network-util'
+import NetworkDetail from './NetworkDetail'
 import { bool, createRuntimeFeed, num, percentile, str, type RuntimeEvent } from './runtimeFeed'
 
 type Filter = 'all' | 'failed' | 'slow' | 'fetch' | 'xhr'
 
 const FILTERS: Filter[] = ['all', 'failed', 'slow', 'fetch', 'xhr']
-
-interface ReplayResult {
-  ok: boolean
-  status: number
-  durationMs: number
-  headers: { name: string; value: string }[]
-  body: string
-  truncated: boolean
-  error?: string
-}
-
-function statusTone(status: number): Tone {
-  if (status === 0) return 'bad'
-  if (status >= 500) return 'bad'
-  if (status >= 400) return 'warn'
-  return 'ok'
-}
-
-function shortUrl(url: string): string {
-  try {
-    const parsed = new URL(url, location.origin)
-    return `${parsed.pathname}${parsed.search}`
-  } catch {
-    return url
-  }
-}
+const BUCKET_TONES: Tone[] = ['ok', 'info', 'warn', 'bad']
 
 export default function NetworkApp(p: { api: PanelApi }) {
   const feed = createRuntimeFeed(p.api, 'network', 300)
   const [filter, setFilter] = createSignal<Filter>('all')
   const [selected, setSelected] = createSignal<number>()
-  const [replaying, setReplaying] = createSignal(false)
-  const [replay, setReplay] = createSignal<ReplayResult>()
 
   const requests = createMemo(() => feed.events())
 
@@ -67,38 +44,30 @@ export default function NetworkApp(p: { api: PanelApi }) {
       total: all.length,
       failed: all.filter((ev) => !bool(ev.data, 'ok')).length,
       slow: all.filter((ev) => bool(ev.data, 'slow')).length,
+      fetch: all.filter((ev) => str(ev.data, 'transport') === 'fetch').length,
+      xhr: all.filter((ev) => str(ev.data, 'transport') === 'xhr').length,
       p95: percentile(durations, 95),
     }
   })
 
-  function select(ev: RuntimeEvent): void {
-    setSelected(ev.id)
-    setReplay(undefined)
-  }
+  const buckets = createMemo(() =>
+    bucketize(
+      requests().map((ev) => num(ev.data, 'durationMs')),
+      [100, 300, 1000],
+    ),
+  )
 
-  async function replayRequest(ev: RuntimeEvent): Promise<void> {
-    const raw = str(ev.data, 'url')
-    if (!raw) return
-    setReplaying(true)
-    setReplay(undefined)
-    try {
-      let absolute = raw
-      try {
-        absolute = new URL(raw, location.origin).toString()
-      } catch {
-        // keep the original and let the server reject it with a readable message
-      }
-      const res = (await p.api.call('replay-request', {
-        url: absolute,
-        method: str(ev.data, 'method') || 'GET',
-      })) as ReplayResult
-      setReplay(res)
-    } catch (err) {
-      setReplay({ ok: false, status: 0, durationMs: 0, headers: [], body: '', truncated: false, error: String(err) })
-    } finally {
-      setReplaying(false)
-    }
-  }
+  const durationSpark = createMemo(() =>
+    requests().slice(-60).map((ev) => num(ev.data, 'durationMs')),
+  )
+
+  const counts = createMemo(() => ({
+    all: stats().total,
+    failed: stats().failed,
+    slow: stats().slow,
+    fetch: stats().fetch,
+    xhr: stats().xhr,
+  }))
 
   return (
     <PanelPage>
@@ -124,14 +93,14 @@ export default function NetworkApp(p: { api: PanelApi }) {
       />
 
       <div class={row}>
-        <For each={FILTERS}>{(f) => (
-          <button class={`${chip} ${filter() === f ? chipOn : ''}`} onClick={() => setFilter(f)}>
-            {f}
-          </button>
-        )}</For>
+        <Segmented
+          items={FILTERS.map((f) => ({ id: f, label: f, count: counts()[f] }))}
+          value={filter()}
+          onChange={(id) => setFilter(id as Filter)}
+          ariaLabel="request filter"
+        />
+        <span class={`${hint} ml-auto`}>{feed.msg()}</span>
       </div>
-
-      <p class={hint}>{feed.msg()}</p>
 
       <Show when={requests().length === 0}>
         <EmptyState
@@ -144,11 +113,37 @@ export default function NetworkApp(p: { api: PanelApi }) {
         <EmptyState title={`No ${filter()} requests`} hint="Switch the filter, or trigger the matching traffic in the app." />
       </Show>
 
+      <Show when={requests().length > 0}>
+        <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
+          <div class={panelCard}>
+            <div class={row}>
+              <span class={sectionLabel}>duration buckets</span>
+              <span class={`${hint} ml-auto`}>ms</span>
+            </div>
+            <BarList
+              items={buckets().map((b, i) => ({
+                label: b.label,
+                value: b.count,
+                tone: BUCKET_TONES[Math.min(i, BUCKET_TONES.length - 1)],
+              }))}
+            />
+          </div>
+          <div class={panelCard}>
+            <div class={row}>
+              <span class={sectionLabel}>duration over time</span>
+              <span class={`${hint} ml-auto`}>last 60</span>
+            </div>
+            <Sparkline values={durationSpark()} width={280} height={62} tone="info" label="request durations" />
+            <span class={hint}>oldest → newest · p95 {fmtMs(stats().p95)}</span>
+          </div>
+        </div>
+      </Show>
+
       <div class={grid}>
         <For each={visible().slice(0, 80)}>{(ev) => {
           const status = num(ev.data, 'status')
           return (
-            <button class={`${tile} ${current()?.id === ev.id ? tileOn : ''}`} onClick={() => select(ev)}>
+            <button class={`${tile} ${current()?.id === ev.id ? tileOn : ''}`} onClick={() => setSelected(ev.id)}>
               <div class={row}>
                 <span class="font-mono text-[11px] font-semibold text-ink">{str(ev.data, 'method') || 'GET'}</span>
                 <span class={tonePill(statusTone(status))}>{status === 0 ? 'ERR' : status}</span>
@@ -173,82 +168,7 @@ export default function NetworkApp(p: { api: PanelApi }) {
       </div>
 
       <Show when={current()}>
-        {(ev) => (
-          <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
-            <div class={row}>
-              <span class={sectionLabel}>request detail</span>
-              <span class={`${hint} ml-auto`}>{fmtWhen(ev().at)}</span>
-            </div>
-            <div class="break-all font-mono text-[11px] text-ink">
-              {str(ev().data, 'method') || 'GET'} {str(ev().data, 'url')}
-            </div>
-            <div class={row}>
-              <span class={tonePill(statusTone(num(ev().data, 'status')))}>
-                {num(ev().data, 'status') === 0 ? 'network error' : num(ev().data, 'status')}
-              </span>
-              <span class={`${chip} cursor-default`}>{fmtMs(num(ev().data, 'durationMs'))}</span>
-              <span class={`${chip} cursor-default`}>{fmtBytes(num(ev().data, 'bytes'))}</span>
-              <Show when={str(ev().data, 'contentType')}>
-                <span class={`${chip} cursor-default truncate`} title={str(ev().data, 'contentType')}>
-                  {str(ev().data, 'contentType').split(';')[0]}
-                </span>
-              </Show>
-              <button
-                class={`${btn} ml-auto`}
-                disabled={replaying()}
-                onClick={() => void replayRequest(ev())}
-              >
-                {replaying() ? 'replaying…' : 'Replay'}
-              </button>
-            </div>
-            <Show when={str(ev().data, 'error')}>
-              <p class="m-0 font-mono text-[11px] text-bad-ink">{str(ev().data, 'error')}</p>
-            </Show>
-
-            <Show when={replay()}>
-              {(r) => (
-                <div class="flex flex-col gap-1.5 rounded-lg border border-solid border-line bg-surface-sunken p-2">
-                  <div class={row}>
-                    <span class={sectionLabel}>replay result</span>
-                    <Show when={r().error} fallback={
-                      <span class={`${tonePill(statusTone(r().status))} ml-auto`}>{r().status}</span>
-                    }>
-                      <span class={`${tonePill('bad')} ml-auto`}>error</span>
-                    </Show>
-                    <span class={`${hint} tabular-nums`}>{fmtMs(r().durationMs)}</span>
-                  </div>
-                  <Show when={r().error}>
-                    <p class="m-0 font-mono text-[11px] text-bad-ink">{r().error}</p>
-                  </Show>
-                  <pre class="m-0 max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] text-ink-muted">
-                    {r().body || '(empty body)'}
-                  </pre>
-                  <Show when={r().truncated}>
-                    <span class={hint}>body truncated at 4 KB</span>
-                  </Show>
-                  <details class="text-[11px] text-ink-muted">
-                    <summary class="cursor-pointer text-ink-faint">{r().headers.length} response headers</summary>
-                    <For each={r().headers}>{(h) => (
-                      <div class="flex gap-1.5 break-all">
-                        <span class="text-accent-ink">{h.name}</span>
-                        <span>{h.value}</span>
-                      </div>
-                    )}</For>
-                  </details>
-                </div>
-              )}
-            </Show>
-
-            <Show when={!bool(ev().data, 'ok') || num(ev().data, 'status') >= 400}>
-              <SendToAgent
-                api={p.api}
-                page={shortUrl(str(ev().data, 'url'))}
-                selection={{ mode: 'page', cssPath: shortUrl(str(ev().data, 'url')) }}
-                placeholder="e.g. why does this request fail — trace it and propose a fix"
-              />
-            </Show>
-          </div>
-        )}
+        {(ev) => <NetworkDetail api={p.api} ev={ev()} />}
       </Show>
     </PanelPage>
   )

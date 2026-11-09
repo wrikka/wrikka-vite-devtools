@@ -3,6 +3,7 @@ import { createSignal, Match, Switch } from 'solid-js'
 import { render } from 'solid-js/web'
 import App from './App'
 import BundleApp from './BundleApp'
+import CanvasApp from './CanvasApp'
 import ComponentsApp from './ComponentsApp'
 import ConsoleApp from './ConsoleApp'
 import EnvApp from './EnvApp'
@@ -95,6 +96,9 @@ render(
       </Match>
       <Match when={hash() === '#/state'}>
         <StateApp api={api} />
+      </Match>
+      <Match when={hash() === '#/canvas'}>
+        <CanvasApp api={api} root={() => root()} />
       </Match>
       </Switch>
       <Toaster />

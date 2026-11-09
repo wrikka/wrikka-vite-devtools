@@ -10,6 +10,8 @@ export interface ProjectContext {
   server?: ViteDevServer
   /** Hub mount base (`/__devtools/`), so server-side proxies can reach the hub routes. */
   base?: string
+  /** The host app's Vite `base` (`/` unless the project sets one), for Canvas previews. */
+  hostBase?: string
 }
 
 export const projectContext: ProjectContext = {}

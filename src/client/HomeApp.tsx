@@ -1,10 +1,12 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from '../ui/api'
-import { btn, btnPrimary, hero, hint, listRow, row, sectionLabel, stat, statLabel, statRow, statValue, title, tonePill } from '../ui/bits'
+import { btn, btnPrimary, hero, hint, row, sectionLabel, tonePill } from '../ui/bits'
 import { copyText, showToast } from '../ui/toast'
 import HomeInstall from './HomeInstall'
 import HomePanels from './HomePanels'
+import HomeSteps from './HomeSteps'
+import { PanelHeader, StatStrip } from './PanelKit'
 import { fetchHubJson, openDock, type HubConnection, type HubIndex } from './hub-link'
 import { PANELS, hubBase } from './panel-catalog'
 
@@ -41,10 +43,6 @@ export interface HomeAppProps {
 }
 
 const WORKSPACE = 'wrikka-vite-devtools'
-
-function statusTone(ok: boolean): string {
-  return ok ? 'bg-ok' : 'bg-bad'
-}
 
 /** Paint each panel as its call lands instead of waiting for the slowest one. */
 function fill<T>(task: Promise<T | undefined>, apply: (value: T) => void): Promise<void> {
@@ -123,26 +121,34 @@ export default function HomeApp(p: HomeAppProps) {
 
   return (
     <div class="flex flex-col gap-3 p-4">
-      <div class={row}>
-        <h1 class={title}>Home</h1>
-        <span class={`${hint} mr-auto`}>{meta() ? `${meta()!.tool} · v${meta()!.version} · ${meta()!.platform}` : WORKSPACE}</span>
-        <Show when={meta()?.role}>
-          {(role) => (
-            <span
-              class={tonePill(role() === 'operator' ? 'ok' : 'warn')}
-              title={role() === 'operator' ? 'this session can run agents and edit comments' : 'read-only session'}
-            >
-              {role()} role
-            </span>
-          )}
-        </Show>
-        <button class={btn} disabled={busy()} onClick={() => void load()}>
-          {busy() ? 'checking…' : 'Refresh'}
-        </button>
-        <a class={`${btn} no-underline`} href={hubBase()} target="_blank" rel="noreferrer">
-          Open hub
-        </a>
-      </div>
+      <PanelHeader
+        title="Home"
+        description={meta() ? `${meta()!.tool} · v${meta()!.version} · ${meta()!.platform}` : WORKSPACE}
+        busy={busy()}
+        refresh={() => void load()}
+        refreshLabel="Refresh"
+        actions={
+          <>
+            <Show when={meta()?.role}>
+              {(role) => (
+                <span
+                  class={tonePill(role() === 'operator' ? 'ok' : 'warn')}
+                  title={
+                    role() === 'operator'
+                      ? 'this session can run agents and edit comments'
+                      : 'read-only session'
+                  }
+                >
+                  {role()} role
+                </span>
+              )}
+            </Show>
+            <a class={`${btn} no-underline`} href={hubBase()} target="_blank" rel="noreferrer">
+              Open hub
+            </a>
+          </>
+        }
+      />
 
       <section class={hero}>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -184,59 +190,34 @@ export default function HomeApp(p: HomeAppProps) {
         </div>
       </section>
 
-      <div class={statRow}>
-        <div class={stat}>
-          <span class={statValue}>{index()?.frames.length ?? PANELS.length}</span>
-          <span class={statLabel}>docks</span>
-        </div>
-        <div class={stat}>
-          <span class={`${statValue} ${mcp()?.ok ? 'text-ok-ink' : 'text-bad-ink'}`}>{mcp()?.tools.length ?? '—'}</span>
-          <span class={statLabel}>MCP tools</span>
-        </div>
-        <div class={stat}>
-          <span class={`${statValue} ${routes()?.detected === 'none' ? 'text-ink-faint' : 'text-ink'}`}>
-            {routes()?.routes.length ?? '—'}
-          </span>
-          <span class={statLabel}>routes</span>
-        </div>
-        <div class={stat}>
-          <span class={`${statValue} ${openCount() > 0 ? 'text-warn-ink' : 'text-ink'}`}>{comments().length}</span>
-          <span class={statLabel}>{openCount() > 0 ? `${openCount()} open` : 'comments'}</span>
-        </div>
-      </div>
+      <StatStrip
+        items={[
+          { value: index()?.frames.length ?? PANELS.length, label: 'docks', hint: conn()?.backend },
+          {
+            value: mcp()?.tools.length ?? '—',
+            label: 'MCP tools',
+            hint: mcp()?.ok ? 'reachable' : 'endpoint down',
+            tone: mcp()?.ok ? undefined : 'text-bad-ink',
+          },
+          {
+            value: routes()?.routes.length ?? '—',
+            label: 'routes',
+            hint: routes()?.detected === 'none' ? 'no router detected' : routes()?.detected,
+            tone: routes()?.detected === 'none' ? 'text-ink-faint' : undefined,
+          },
+          {
+            value: comments().length,
+            label: openCount() > 0 ? `${openCount()} open` : 'comments',
+            tone: openCount() > 0 ? 'text-warn-ink' : undefined,
+          },
+        ]}
+      />
 
       <div class="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <div class="lg:col-span-3">
           <HomeInstall endpoint={mcp()?.endpoint} />
         </div>
-
-        <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-3 lg:col-span-2">
-          <div class={row}>
-            <span class={sectionLabel}>onboarding</span>
-            <span class={`${hint} ml-auto`}>{steps().filter((s) => s.done).length}/{steps().length} ready</span>
-          </div>
-          <For each={steps()}>
-            {(s) => (
-              <div class={listRow}>
-                <span class={`size-2 shrink-0 rounded-full ${statusTone(s.done)}`} aria-hidden />
-                <span class="flex min-w-0 flex-col">
-                  <span class="text-[12px] font-medium text-ink">{s.label}</span>
-                  <span class={`${hint} truncate`} title={s.detail}>
-                    {s.detail}
-                  </span>
-                </span>
-                <Show when={s.act}>
-                  <button class={`${btn} ml-auto shrink-0`} onClick={() => s.act?.()}>
-                    {s.actLabel}
-                  </button>
-                </Show>
-              </div>
-            )}
-          </For>
-          <span class={`${hint} px-1`}>
-            {meta()?.cwd ? `cwd: ${meta()!.cwd}` : 'workspace path unavailable'}
-          </span>
-        </div>
+        <HomeSteps steps={steps()} cwd={meta()?.cwd} />
       </div>
 
       <HomePanels />

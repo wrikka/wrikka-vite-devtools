@@ -58,6 +58,7 @@ function projectContextPlugin(base: string): Plugin {
     enforce: 'pre',
     configResolved(config) {
       projectContext.root = config.root
+      projectContext.hostBase = config.base || '/'
     },
     configureServer(server) {
       projectContext.server = server

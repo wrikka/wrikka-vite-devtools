@@ -110,6 +110,7 @@ Home is registered first, so the dock rail lands on it.
 | `imports` | Import Graph | importers and unused exports per file |
 | `i18n` | i18n | missing keys, hardcoded copy, locale coverage |
 | `security` | Security Headers | CSP, HSTS and COOP on served HTML |
+| `canvas` | Canvas | Figma-like board of page artboards and component cards |
 
 The runtime panels (`network`, `console`, `performance`, `state`) read the overlay's ring buffers, so
 the overlay must be on (`overlay: true`, the default) for them to fill. The source and build panels

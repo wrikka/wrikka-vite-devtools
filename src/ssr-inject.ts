@@ -18,6 +18,10 @@ export function createSsrInjectPlugin(base = '/__devtools/'): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (!(req.headers.accept ?? '').includes('text/html')) return next()
+        // Canvas previews must not receive the hub client at all: suppressing it
+        // only in the client still downloads the module for every preview iframe.
+        if (new URL(req.url ?? '/', 'http://localhost').searchParams.get('__wrikka-overlay') === 'off')
+          return next()
         hookHtmlResponse(res, `<script type="module" src="${embedSrc}"></script>`, embedSrc)
         next()
       })
