@@ -43,12 +43,6 @@ const PANELS: Panel[] = [
   { name: 'Data Inspector · Code Server', desc: 'Opt-in frames; install their peers and add the keys.', tag: 'opt-in' },
 ]
 
-const NAV_LINKS: [href: string, label: string][] = [
-  ['/', 'Home'],
-  ['/get-started.html', 'Get Started'],
-  ['/usage.html', 'Usage'],
-]
-
 function el(id: string): HTMLElement | null {
   return document.getElementById(id)
 }
@@ -69,19 +63,13 @@ async function json<T>(path: string): Promise<T> {
 function renderNav(): void {
   const host = el('site-nav')
   if (!host) return
-  const path = location.pathname.replace(/\/index\.html$/, '/').replace(/\/$/, '') || '/'
-  const links = NAV_LINKS.map(([href, label]) => {
-    const active = href === '/' ? path === '/' : path === href
-    const cls = active ? 'bg-control font-medium text-ink' : 'text-ink-muted hover:bg-control hover:text-ink'
-    return `<a class="shrink-0 rounded-md px-2.5 py-1.5 text-[12px] ${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${label}</a>`
-  }).join('')
   host.innerHTML = `<header class="sticky top-0 z-40 border-b border-solid border-line bg-surface/85 backdrop-blur-md">
     <div class="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 py-2">
       <a class="flex shrink-0 items-center gap-2 rounded-md" href="/" aria-label="wrikka-vite-devtools home">
         <span class="flex size-7 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[13px] font-bold text-accent-ink">W</span>
         <span class="hidden text-[12px] font-semibold text-ink sm:inline">wrikka<span class="text-ink-faint">/</span>devtools</span>
       </a>
-      <nav class="flex items-center gap-0.5 overflow-x-auto" aria-label="Site">${links}</nav>
+      <span class="text-[11px] text-ink-muted">dev host</span>
       <a class="ml-auto shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-accent-hover" href="${BASE}">Open hub</a>
     </div>
   </header>`

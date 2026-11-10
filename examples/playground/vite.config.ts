@@ -10,13 +10,4 @@ export default defineConfig({
     UnoCSS(resolve(import.meta.dirname, 'uno.config.ts')),
     useWrikkaViteDevtools({ plugins: 'all', auth: false }),
   ],
-  build: {
-    rollupOptions: {
-      input: {
-        main: resolve(import.meta.dirname, 'index.html'),
-        'get-started': resolve(import.meta.dirname, 'get-started.html'),
-        usage: resolve(import.meta.dirname, 'usage.html'),
-      },
-    },
-  },
 })
