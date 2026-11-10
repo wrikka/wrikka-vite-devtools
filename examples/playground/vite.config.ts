@@ -14,10 +14,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
-        form: resolve(import.meta.dirname, 'form.html'),
-        dashboard: resolve(import.meta.dirname, 'dashboard.html'),
-        pricing: resolve(import.meta.dirname, 'pricing.html'),
-        kanban: resolve(import.meta.dirname, 'kanban.html'),
+        'get-started': resolve(import.meta.dirname, 'get-started.html'),
+        usage: resolve(import.meta.dirname, 'usage.html'),
       },
     },
   },

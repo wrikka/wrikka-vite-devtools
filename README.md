@@ -74,8 +74,8 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 | ![e](https://api.iconify.design/mdi/puzzle-outline.svg?color=%2300878b&width=16) | Browser extension | `packages/browser-extension` (MV3): detects localhost dev servers and whether the plugin is mounted; opens the chat or the hub, and recommends the setup snippet when it is not | find devtools on any tab without guessing | load `dist/` unpacked |
 
 The repo is a [moonrepo](https://moonrepo.dev) monorepo — `bunx moon projects` lists
-`wrikka-vite-devtools` (root), `playground` (`examples/playground`, a multi-page examples site:
-home, form, dashboard, pricing, kanban) and `browser-extension` (`packages/browser-extension`).
+`wrikka-vite-devtools` (root), `playground` (`examples/playground`, the dev host and docs
+site: home, get started, usage) and `browser-extension` (`packages/browser-extension`).
 
 ## Dock panels
 

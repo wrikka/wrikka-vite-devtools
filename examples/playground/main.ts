@@ -15,41 +15,6 @@ interface ConnectionMeta {
   }
 }
 
-interface Idea {
-  n: number
-  app: string
-  group: string
-  problem: string
-  impact: 'high' | 'mid' | 'low'
-  effort: 'S' | 'M' | 'L'
-  /** Dock id — the client SPA route that renders this panel. */
-  route: string
-}
-
-// Same list the maintenance chat works from — keep the three groups in sync.
-const IDEAS: Idea[] = [
-  { n: 1, app: 'Theme & Tokens', group: 'Source', problem: 'Audits used utilities against the theme, catching palette hardcodes and stray dark: variants.', impact: 'high', effort: 'S', route: 'theme' },
-  { n: 2, app: 'Network', group: 'Runtime', problem: 'Captures fetch/XHR so slow or failing calls can be replayed and handed to the agent.', impact: 'high', effort: 'M', route: 'network' },
-  { n: 3, app: 'Runs & Queue', group: 'Agent', problem: 'One view of every agent run with duration, status, cancel and retry.', impact: 'high', effort: 'S', route: 'runs' },
-  { n: 4, app: 'MCP Playground', group: 'Agent', problem: 'Lists mounted tools with schemas and invokes them without an external inspector.', impact: 'high', effort: 'S', route: 'mcp-playground' },
-  { n: 5, app: 'Performance', group: 'Runtime', problem: 'Web Vitals and slow resources from the real page before asking for an optimization.', impact: 'mid', effort: 'M', route: 'performance' },
-  { n: 6, app: 'Console & Logs', group: 'Runtime', problem: 'Merges page console with live agent output and forwards a selection to the agent.', impact: 'mid', effort: 'M', route: 'console' },
-  { n: 7, app: 'Bundle', group: 'Build', problem: 'Shows the largest modules, init cost and cycles behind a growing bundle.', impact: 'mid', effort: 'M', route: 'bundle' },
-  { n: 8, app: 'Env & Config', group: 'Build', problem: 'Compares env vars referenced in code with .env and redacts the values.', impact: 'mid', effort: 'S', route: 'env' },
-  { n: 9, app: 'Visual Diff', group: 'Quality', problem: 'Captures a baseline and diffs it so UI changes show their blast radius.', impact: 'mid', effort: 'M', route: 'visual-diff' },
-  { n: 10, app: 'Tests', group: 'Quality', problem: 'Runs the matching test file from the dock and sends failures to the agent.', impact: 'mid', effort: 'M', route: 'tests' },
-  { n: 11, app: 'State Snapshots', group: 'Runtime', problem: 'Snapshots route, DOM and storage over time to expose leaks and drift.', impact: 'mid', effort: 'M', route: 'state' },
-  { n: 12, app: 'Import Graph', group: 'Build', problem: 'Maps importers and unused exports before a refactor.', impact: 'low', effort: 'M', route: 'imports' },
-  { n: 13, app: 'i18n', group: 'Source', problem: 'Finds missing keys, hardcoded copy and per-locale coverage.', impact: 'low', effort: 'M', route: 'i18n' },
-  { n: 14, app: 'Security Headers', group: 'Quality', problem: 'Checks CSP, HSTS and COOP on the served HTML before deploy.', impact: 'low', effort: 'S', route: 'security' },
-]
-
-const impactTone: Record<Idea['impact'], string> = {
-  high: 'text-bad-ink',
-  mid: 'text-warn-ink',
-  low: 'text-ok-ink',
-}
-
 interface Panel {
   name: string
   desc: string
@@ -80,10 +45,8 @@ const PANELS: Panel[] = [
 
 const NAV_LINKS: [href: string, label: string][] = [
   ['/', 'Home'],
-  ['/form.html', 'Form'],
-  ['/dashboard.html', 'Dashboard'],
-  ['/pricing.html', 'Pricing'],
-  ['/kanban.html', 'Kanban'],
+  ['/get-started.html', 'Get Started'],
+  ['/usage.html', 'Usage'],
 ]
 
 function el(id: string): HTMLElement | null {
@@ -113,12 +76,12 @@ function renderNav(): void {
     return `<a class="shrink-0 rounded-md px-2.5 py-1.5 text-[12px] ${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${label}</a>`
   }).join('')
   host.innerHTML = `<header class="sticky top-0 z-40 border-b border-solid border-line bg-surface/85 backdrop-blur-md">
-    <div class="mx-auto flex w-full max-w-6xl items-center gap-3 px-5 py-2">
-      <a class="flex shrink-0 items-center gap-2 rounded-md" href="/" aria-label="wrikka-vite-devtools playground home">
+    <div class="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 py-2">
+      <a class="flex shrink-0 items-center gap-2 rounded-md" href="/" aria-label="wrikka-vite-devtools home">
         <span class="flex size-7 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[13px] font-bold text-accent-ink">W</span>
-        <span class="hidden text-[12px] font-semibold text-ink sm:inline">wrikka<span class="text-ink-faint">/</span>playground</span>
+        <span class="hidden text-[12px] font-semibold text-ink sm:inline">wrikka<span class="text-ink-faint">/</span>devtools</span>
       </a>
-      <nav class="flex items-center gap-0.5 overflow-x-auto" aria-label="Example pages">${links}</nav>
+      <nav class="flex items-center gap-0.5 overflow-x-auto" aria-label="Site">${links}</nav>
       <a class="ml-auto shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-accent-hover" href="${BASE}">Open hub</a>
     </div>
   </header>`
@@ -164,28 +127,6 @@ async function probe(): Promise<void> {
   }
 }
 
-function card(idea: Idea): string {
-  return `<a class="flex flex-col gap-1 rounded-xl border border-solid border-line bg-surface-raised p-4 transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-control" href="${PANEL_BASE}#/${idea.route}">
-    <div class="flex items-center gap-2">
-      <span class="font-mono text-[10px] text-ink-faint">${String(idea.n).padStart(2, '0')}</span>
-      <span class="text-[13px] font-semibold text-ink">${idea.app}</span>
-      <span class="ml-auto rounded-full bg-control px-2 py-0.5 text-[10px] uppercase tracking-wide text-ink-muted">${idea.group}</span>
-    </div>
-    <span class="text-[11px] leading-relaxed text-ink-muted">${idea.problem}</span>
-    <div class="mt-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide">
-      <span class="${impactTone[idea.impact]}">${idea.impact} impact</span>
-      <span class="text-ink-faint">·</span>
-      <span class="text-ink-muted">${idea.effort} effort</span>
-    </div>
-  </a>`
-}
-
-function renderRoadmap(): void {
-  const root = el('roadmap')
-  if (root) root.innerHTML = IDEAS.map(card).join('')
-}
-
 renderNav()
 renderPanels()
-renderRoadmap()
 if (el('status-hub')) void probe()
