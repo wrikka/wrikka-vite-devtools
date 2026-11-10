@@ -76,7 +76,7 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 The repo is a [moonrepo](https://moonrepo.dev) monorepo — `bunx moon projects` lists
 `wrikka-vite-devtools` (root), `playground` (`examples/playground`, the single-page
 dev host) and `browser-extension` (`packages/browser-extension`). Public docs live in
-`wrikka/opensource-docs`.
+`wrikka/wrikka-docs`.
 
 ## Dock panels
 

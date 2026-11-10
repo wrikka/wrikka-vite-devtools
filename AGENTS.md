@@ -21,7 +21,7 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 ## Scope
 
 - In: `src/` (plugin, devframe definition, RPC, agent runner, overlay, frame SPA),
-  `examples/playground/` (single-page dev host; public docs live in `wrikka/opensource-docs`),
+  `examples/playground/` (single-page dev host; public docs live in `wrikka/wrikka-docs`),
   `packages/browser-extension/` (MV3 companion), `.moon/` + `moon.yml` (moonrepo workspace),
   `README.md`, `USAGE.md`, `.github/workflows/`
 - Out: upstream Devframe behaviour (`follow-tool-devfra`), host-app integration in other repos,
