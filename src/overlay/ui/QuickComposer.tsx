@@ -1,15 +1,13 @@
-import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
-import { btn, btnPrimary, chip, chipOn, field, hint, row } from '../../ui/bits'
+import { Show, createMemo, createSignal, onMount } from 'solid-js'
+import { btn, btnActive, btnPrimary, chip, chipOn, field, hint, row } from '../../ui/bits'
 import { CommentIcon, PinsIcon, PanelIcon } from '../../ui/icons'
+import { CloseIcon } from './icons'
+import { MentionList, RouteChips, StarterChips } from './composer-rows'
+import { fallbackRoutes, mergeRoute, type RouteHit } from './routes'
 import { showToast } from '../../ui/toast'
 import { readDraft, stashDraft } from '../../ui/draft-stash'
 import { pageUrl, type PanelApi } from '../api'
 import { submitPageComment } from '../submit-comment'
-
-interface RouteHit {
-  path: string
-  kind?: string
-}
 
 export interface QuickComposerProps {
   api: PanelApi
@@ -17,28 +15,13 @@ export interface QuickComposerProps {
   route: string
   viewer: boolean
   pinsOn: boolean
+  /** Reflects the chat sidebar state so the header button reads as a toggle. */
+  chatOpen: boolean
   hub: string
   onPins(): void
   onChat(): void
   onClose(): void
   onSubmitted(): void
-}
-
-const QUICK_STARTS = ['Improve the UX/UI here: ', 'Fix a bug here: ', 'Add tests for this page: ']
-
-/** Same-origin paths already linked from the page, when the project has no route scanner. */
-function fallbackRoutes(route: string): RouteHit[] {
-  const paths = new Set<string>([route])
-  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
-    try {
-      const url = new URL(a.href)
-      if (url.origin !== location.origin || /(^|\/)__/.test(url.pathname)) continue
-      paths.add(url.pathname)
-    } catch {
-      /* ignore malformed hrefs */
-    }
-  }
-  return [...paths].slice(0, 12).map((path) => ({ path }))
 }
 
 export default function QuickComposer(p: QuickComposerProps) {
@@ -67,11 +50,6 @@ export default function QuickComposer(p: QuickComposerProps) {
     } catch {
       setRoutes(fallbackRoutes(p.route))
     }
-  }
-
-  function mergeRoute(route: string, hits: RouteHit[]): RouteHit[] {
-    const seen = new Set<string>()
-    return [{ path: route }, ...hits].filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)))
   }
 
   const suggestions = createMemo(() => routes().filter((r) => r.path !== p.route).slice(0, 4))
@@ -113,6 +91,16 @@ export default function QuickComposer(p: QuickComposerProps) {
 
   function append(text: string): void {
     ta.value = ta.value ? `${ta.value.replace(/\s+$/, '')}\n${text}` : text
+    setText(ta.value)
+    ta.focus()
+    stashDraft(page, { body: ta.value, skills: [] })
+  }
+
+  /** Chip click: drop `@path ` in at the caret without disturbing the draft. */
+  function insertMention(path: string): void {
+    const pos = ta.selectionStart ?? ta.value.length
+    const before = ta.value.slice(0, pos)
+    ta.value = `${before}${before && !/\s$/.test(before) ? ' ' : ''}@${path} ${ta.value.slice(pos)}`
     setText(ta.value)
     ta.focus()
     stashDraft(page, { body: ta.value, skills: [] })
@@ -169,7 +157,7 @@ export default function QuickComposer(p: QuickComposerProps) {
 
   return (
     <div
-      class="fixed bottom-20 left-14 z-[2147483001] flex w-[min(430px,calc(100vw-80px))] flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-3 text-ink shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
+      class="fixed bottom-20 left-14 z-[2147483001] flex w-[min(430px,calc(100vw-80px))] flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-3 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
       role="dialog"
       aria-label="Comment on this page"
       onKeyDown={(e) => {
@@ -185,26 +173,27 @@ export default function QuickComposer(p: QuickComposerProps) {
           {p.route}
         </span>
         <button
-          class={`${btn} ml-auto`}
+          class={`${btn} ${p.pinsOn ? btnActive : ''}`}
           aria-pressed={p.pinsOn}
-          title="Show or hide annotation pins"
+          title={p.pinsOn ? 'Hide annotation pins' : 'Show annotation pins'}
           onClick={p.onPins}
         >
           <PinsIcon />
         </button>
         <button
-          class={btn}
+          class={`${btn} ${p.chatOpen ? btnActive : ''}`}
           onClick={p.onChat}
+          aria-pressed={p.chatOpen}
           aria-label="Open chat"
-          title="Chat — the agent works on this page's comments"
+          title={p.chatOpen ? 'Chat is open' : 'Chat — the agent works on this page\'s comments'}
         >
           <CommentIcon />
         </button>
         <a class={`${btn} no-underline`} href={p.hub} target="_blank" rel="noreferrer" title="Open the comments panel">
           <PanelIcon />
         </a>
-        <button class={btn} onClick={p.onClose} aria-label="Close the comment box">
-          ✕
+        <button class={btn} onClick={p.onClose} aria-label="Close the comment box" title="Close (Esc)">
+          <CloseIcon />
         </button>
       </div>
 
@@ -233,61 +222,12 @@ export default function QuickComposer(p: QuickComposerProps) {
       />
 
       <Show when={mention() && mentionList().length > 0}>
-        <div class="flex max-h-36 flex-col overflow-auto rounded-lg border border-solid border-line bg-surface p-1" role="listbox" aria-label="Route suggestions">
-          <For each={mentionList()}>
-            {(r, i) => (
-              <button
-                class={`flex cursor-pointer items-center gap-2 rounded-md border border-solid border-transparent px-2 py-1 text-left text-[11px] ${
-                  i() === cursor() ? 'border-line-strong bg-control text-ink' : 'text-ink-muted hover:bg-control'
-                }`}
-                role="option"
-                aria-selected={i() === cursor()}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  insertRoute(r.path)
-                }}
-              >
-                <span class="font-mono">{r.path}</span>
-                <Show when={r.kind}>
-                  <span class={`${hint} ml-auto uppercase`}>{r.kind}</span>
-                </Show>
-              </button>
-            )}
-          </For>
-        </div>
+        <MentionList items={mentionList()} cursor={cursor()} onPick={insertRoute} />
       </Show>
 
-      <div class={row}>
-        <span class={hint}>suggestions</span>
-        <For each={[p.route, ...suggestions().map((r) => r.path)].slice(0, 3)}>
-          {(path) => (
-            <button
-              class={chip}
-              onClick={() => {
-                const pos = ta.selectionStart ?? ta.value.length
-                const before = ta.value.slice(0, pos)
-                ta.value = `${before}${before && !/\s$/.test(before) ? ' ' : ''}@${path} ${ta.value.slice(pos)}`
-                setText(ta.value)
-                ta.focus()
-                stashDraft(page, { body: ta.value, skills: [] })
-              }}
-              title={`Mention ${path}`}
-            >
-              @{path}
-            </button>
-          )}
-        </For>
-      </div>
+      <RouteChips paths={[p.route, ...suggestions().map((r) => r.path)].slice(0, 3)} onPick={insertMention} />
 
-      <div class={row}>
-        <For each={QUICK_STARTS}>
-          {(s) => (
-            <button class={chip} onClick={() => append(s)} title="Add this prompt">
-              {s.replace(/:\s*$/, '')}
-            </button>
-          )}
-        </For>
-      </div>
+      <StarterChips onPick={append} />
 
       <div class={row}>
         <button class={`${chip} ${kind() === 'comment' ? chipOn : ''}`} onClick={() => setKind('comment')}>

@@ -12,10 +12,7 @@
     <div id="site-nav"></div>
     <main class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-10">
       <section class="relative overflow-hidden rounded-2xl border border-solid border-line bg-linear-to-br from-accent-soft via-surface-raised to-surface p-8">
-        <div class="pointer-events-none absolute -right-16 -top-28 size-80 rounded-full bg-accent/15 blur-3xl" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-32 left-16 size-72 rounded-full bg-accent/10 blur-3xl" aria-hidden="true"></div>
         <div class="relative flex max-w-2xl flex-col gap-4">
-          <span class="w-fit rounded-full border border-solid border-line bg-control px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-accent-ink">devtools hub · one plugin line</span>
           <h1 class="text-[34px] font-semibold leading-tight tracking-tight text-ink">
             Every devtool your app needs, docked on the left.
           </h1>
@@ -23,7 +20,6 @@
             This site is the host app. The plugin mounts a devframes hub at
             <code class="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-[12px] text-ink">/__devtools/</code>
             with dock panels, an aggregate MCP endpoint, and an in-page pill that turns a click into an agent task.
-            Pick an example below and annotate it.
           </p>
           <div class="mt-1 flex flex-wrap items-center gap-2">
             <a class="rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white hover:bg-accent-hover" href="/__devtools/">Open the hub</a>
@@ -68,25 +64,21 @@
             <span class="flex size-8 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[12px] font-bold text-accent-ink">F</span>
             <span class="text-[13px] font-semibold text-ink">Settings form</span>
             <span class="text-[11px] leading-relaxed text-ink-muted">Profile fields, toggles and a save flow — a dense form to annotate.</span>
-            <span class="mt-auto text-[11px] font-medium text-accent-ink">Open example →</span>
           </a>
           <a class="group flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-4 transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-control" href="/dashboard.html">
             <span class="flex size-8 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[12px] font-bold text-accent-ink">D</span>
             <span class="text-[13px] font-semibold text-ink">Analytics dashboard</span>
             <span class="text-[11px] leading-relaxed text-ink-muted">Stat cards, a bar chart, sparkline and activity table.</span>
-            <span class="mt-auto text-[11px] font-medium text-accent-ink">Open example →</span>
           </a>
           <a class="group flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-4 transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-control" href="/pricing.html">
             <span class="flex size-8 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[12px] font-bold text-accent-ink">P</span>
             <span class="text-[13px] font-semibold text-ink">Pricing tiers</span>
             <span class="text-[11px] leading-relaxed text-ink-muted">Three plans with a featured middle tier and CTA buttons.</span>
-            <span class="mt-auto text-[11px] font-medium text-accent-ink">Open example →</span>
           </a>
           <a class="group flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-4 transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-control" href="/kanban.html">
             <span class="flex size-8 items-center justify-center rounded-lg border border-solid border-line bg-accent-soft text-[12px] font-bold text-accent-ink">K</span>
             <span class="text-[13px] font-semibold text-ink">Kanban board</span>
             <span class="text-[11px] leading-relaxed text-ink-muted">Sprint columns with tagged cards and assignees.</span>
-            <span class="mt-auto text-[11px] font-medium text-accent-ink">Open example →</span>
           </a>
         </div>
       </section>
@@ -94,7 +86,6 @@
       <section class="flex flex-col gap-3">
         <div class="flex flex-wrap items-baseline gap-2">
           <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">What the dock ships</h2>
-          <span class="text-[11px] text-ink-muted">panel · what it answers · category · click to open</span>
         </div>
         <div id="panels" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <noscript class="text-[12px] text-ink-muted">Enable JavaScript to render the dock panels.</noscript>
@@ -133,8 +124,7 @@ useWrikkaViteDevtools({
 
       <section class="flex flex-col gap-3">
         <div class="flex flex-wrap items-baseline gap-2">
-          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">All 14 apps · live in the dock</h2>
-          <span class="text-[11px] text-ink-muted">click any card to open that panel</span>
+          <h2 class="m-0 text-[16px] font-semibold tracking-tight text-ink">Every panel, live in the dock</h2>
         </div>
         <div id="roadmap" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <noscript class="text-[12px] text-ink-muted">Enable JavaScript to render the app launcher.</noscript>

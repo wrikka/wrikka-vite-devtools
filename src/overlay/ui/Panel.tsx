@@ -1,4 +1,5 @@
 import { onCleanup, onMount, type ParentProps } from 'solid-js'
+import { CloseIcon } from './icons'
 
 export interface PanelProps extends ParentProps {
   title: string
@@ -27,7 +28,7 @@ export default function Panel(p: PanelProps) {
         role="dialog"
         aria-modal="true"
         aria-label={p.title}
-        class="flex max-h-[min(80vh,600px)] w-[min(460px,100%)] flex-col gap-2.5 overflow-auto rounded-xl border border-solid border-line bg-surface-raised p-3.5 text-ink shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
+        class="flex max-h-[min(80vh,600px)] w-[min(460px,100%)] flex-col gap-2.5 overflow-auto rounded-xl border border-solid border-line bg-surface-raised p-3.5 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.stopPropagation()
@@ -38,11 +39,12 @@ export default function Panel(p: PanelProps) {
         <div class="flex items-center gap-2">
           <h3 class="m-0 text-[13px] font-semibold tracking-[0.01em]">{p.title}</h3>
           <button
-            class="ml-auto cursor-pointer rounded-md border-none bg-transparent px-1.5 text-[12px] text-ink-muted hover:bg-control hover:text-ink"
+            class="ml-auto flex size-6 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-ink-muted transition-colors hover:bg-control hover:text-ink focus-visible:bg-control focus-visible:text-ink focus-visible:outline-none"
             onClick={p.onClose}
             aria-label={`Close ${p.title}`}
+            title="Close (Esc)"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
         {p.children}

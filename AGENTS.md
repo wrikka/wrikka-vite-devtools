@@ -86,7 +86,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    imperative DOM (`anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
    Chat mode: `page-shift.ts` translates `document.documentElement` by `CHAT_WIDTH_PX` (400) so the
-   whole page slides right while `ChatPanel` counters to viewport `left:0`; `chat-control.ts`
+   whole page slides right while `ChatPanel` counters to viewport `left:0`; the header expand
+   button toggles fullscreen — the shift clears and the panel covers the viewport. `chat-control.ts`
    bridges the window contract — `__WRIKKA_VITE_DEVTOOLS_OVERLAY__` is `{ openChat, closeChat }`
    (was a boolean guard; truthiness checks still hold) and `window` listens for the
    `wrikka:open-chat` CustomEvent, which `packages/browser-extension`'s content script dispatches.

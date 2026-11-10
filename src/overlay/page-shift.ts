@@ -4,6 +4,7 @@
  * travel with the page; the chat panel counters it with a negative `left` and
  * stays pinned to the viewport's left edge. Everything lives in inline styles
  * on the root element, so closing restores the page exactly as it was.
+ * Fullscreen chat clears the shift instead — the panel covers the viewport.
  */
 export const CHAT_WIDTH_PX = 400
 
@@ -26,14 +27,14 @@ export function chatShiftActive(): boolean {
 }
 
 /** Idempotent — re-calling while open (or mid-close) just re-asserts the shift. */
-export function applyChatShift(): void {
+export function applyChatShift(widthPx = CHAT_WIDTH_PX): void {
   clearTimeout(timer)
   const html = document.documentElement
   if (!saved) saved = { transform: html.style.transform, transition: html.style.transition }
   html.style.transition = reducedMotion() ? 'none' : TRANSITION
   // Reflow so the transition is armed before the transform value changes.
   void html.offsetHeight
-  html.style.transform = `translateX(${CHAT_WIDTH_PX}px)`
+  html.style.transform = `translateX(${widthPx}px)`
   active = true
 }
 

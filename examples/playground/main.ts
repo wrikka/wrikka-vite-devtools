@@ -173,10 +173,9 @@ function card(idea: Idea): string {
     </div>
     <span class="text-[11px] leading-relaxed text-ink-muted">${idea.problem}</span>
     <div class="mt-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide">
-      <span class="${impactTone[idea.impact]}">${idea.impact}</span>
+      <span class="${impactTone[idea.impact]}">${idea.impact} impact</span>
       <span class="text-ink-faint">·</span>
       <span class="text-ink-muted">${idea.effort} effort</span>
-      <span class="ml-auto rounded-full bg-ok/20 px-2 py-0.5 text-ok-ink">live</span>
     </div>
   </a>`
 }

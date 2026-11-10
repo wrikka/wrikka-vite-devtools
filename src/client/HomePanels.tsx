@@ -26,7 +26,7 @@ export default function HomePanels() {
       <div class={row}>
         <span class={sectionLabel}>all panels</span>
         <span class={`${hint} ml-auto`}>
-          {shown().length}/{PANELS.length} · click to open in the dock
+          {shown().length}/{PANELS.length} panels
         </span>
       </div>
 
@@ -63,7 +63,6 @@ export default function HomePanels() {
                     {Glyph ? <Glyph /> : panel.monogram}
                   </span>
                   <span class="truncate text-[12px] font-semibold text-ink">{panel.title}</span>
-                  <span class={`${hint} ml-auto shrink-0 text-[10px] uppercase tracking-wide`}>{CATEGORY_LABEL[panel.category]}</span>
                   <span class={`${hint} shrink-0 transition-transform group-hover:translate-x-0.5`} aria-hidden>
                     <ChevronIcon />
                   </span>

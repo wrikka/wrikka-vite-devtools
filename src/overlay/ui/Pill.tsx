@@ -17,7 +17,7 @@ export interface PillProps {
 export default function Pill(p: PillProps) {
   return (
     <button
-      class={`fixed bottom-4 left-14 z-[2147483000] flex size-11 cursor-pointer items-center justify-center rounded-full border border-solid shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-colors select-none ${
+      class={`fixed bottom-4 left-14 z-[2147483000] flex size-11 cursor-pointer items-center justify-center rounded-full border border-solid shadow-[0_4px_16px_rgba(0,0,0,0.35)] transition active:scale-95 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 ${
         p.open
           ? 'border-line-strong bg-control text-ink'
           : 'border-accent bg-accent text-white hover:bg-accent-hover'

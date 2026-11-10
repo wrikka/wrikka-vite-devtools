@@ -154,10 +154,12 @@ panel does not get a duplicate of itself.
 
 A second pill (`ChatPill`, stacked above the comment icon) opens a Lovable-style chat: a ~400 px
 left sidebar while `page-shift.ts` translates the whole document right, so the page stays usable
-beside the thread. The thread shows the route's comment exchanges — user bubbles, agent status
-pills, live `agent-logs` tails — and its composer submits through the same `submit-comment` RPC
-(draft persisted like the quick composer). Open it from the pill, the composer header, or
-programmatically: `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__.openChat()` / `.closeChat()`, or
+beside the thread — nothing is overlaid, the webview itself moves. The header's expand button
+switches to fullscreen (the shift clears and the panel covers the viewport); the thread shows the
+route's comment exchanges — user bubbles, agent status pills, live `agent-logs` tails — and its
+composer submits through the same `submit-comment` RPC (draft persisted like the quick composer).
+Open it from the pill, the composer header, or programmatically:
+`window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__.openChat()` / `.closeChat()`, or
 `window.dispatchEvent(new CustomEvent('wrikka:open-chat'))` — the contract the
 `packages/browser-extension` content script uses.
 

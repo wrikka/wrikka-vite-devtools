@@ -28,6 +28,7 @@ export default function App(p: AppProps) {
   const [viewer, setViewer] = createSignal(false)
   const [chatOpen, setChatOpen] = createSignal(false)
   const [chatMounted, setChatMounted] = createSignal(false)
+  const [chatFull, setChatFull] = createSignal(false)
   let chatTimer: ReturnType<typeof setTimeout> | undefined
 
   const route = (): string => location.pathname || '/'
@@ -74,15 +75,25 @@ export default function App(p: AppProps) {
     clearTimeout(chatTimer)
     setChatMounted(true)
     setChatOpen(true)
+    setChatFull(false)
     applyChatShift()
   }
 
   function closeChat(): void {
     if (!chatOpen()) return
     setChatOpen(false)
+    setChatFull(false)
     clearChatShift()
     // The panel stays mounted (parked off-screen left) until the slide finishes.
     chatTimer = setTimeout(() => setChatMounted(false), 340)
+  }
+
+  // Fullscreen drops the page shift and covers the viewport; docking restores it.
+  function toggleChatFull(): void {
+    const next = !chatFull()
+    setChatFull(next)
+    if (next) clearChatShift()
+    else applyChatShift()
   }
 
   function toggleChat(): void {
@@ -94,13 +105,14 @@ export default function App(p: AppProps) {
     <>
       <Pins comments={comments()} visible={pinsOn()} />
       <Pill open={open()} active={active()} running={running()} onToggle={() => setOpen((v) => !v)} />
-      <ChatPill open={chatOpen()} active={active()} onToggle={toggleChat} />
+      <ChatPill open={chatOpen()} active={active()} running={running()} onToggle={toggleChat} />
       <Show when={open()}>
         <QuickComposer
           api={p.api}
           route={route()}
           viewer={viewer()}
           pinsOn={pinsOn()}
+          chatOpen={chatOpen()}
           hub={`${p.hub}?page=${encodeURIComponent(pageUrl())}`}
           onPins={() => setPinsOn((v) => !v)}
           onChat={openChat}
@@ -115,6 +127,8 @@ export default function App(p: AppProps) {
           viewer={viewer()}
           comments={comments()}
           open={chatOpen()}
+          full={chatFull()}
+          onToggleFull={toggleChatFull}
           onClose={closeChat}
           onSubmitted={() => void poll()}
         />

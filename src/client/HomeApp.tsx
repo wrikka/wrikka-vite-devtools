@@ -1,7 +1,7 @@
 import { createMemo, createSignal, onMount } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from '../ui/api'
-import HomeDashboard, { type GlanceItem } from './HomeDashboard'
+import HomeDashboard from './HomeDashboard'
 import HomeInstall from './HomeInstall'
 import HomePanels from './HomePanels'
 import HomeStats, { CommentPipeline } from './HomeStats'
@@ -85,29 +85,6 @@ export default function HomeApp(p: HomeAppProps) {
   const driver = createMemo(() => runner()?.driver ?? runner()?.available[0])
   const docks = createMemo(() => index()?.frames.length ?? PANELS.length)
 
-  const glance = createMemo<GlanceItem[]>(() => [
-    {
-      label: 'MCP endpoint',
-      value: mcp() ? (mcp()!.ok ? `${mcp()!.tools.length} tools reachable` : (mcp()!.error ?? 'unreachable')) : 'probing…',
-      tone: mcp() ? (mcp()!.ok ? 'ok' : 'bad') : 'muted',
-    },
-    {
-      label: 'Agent CLI',
-      value: runner() ? (driver() ?? 'none installed') : 'probing installed CLIs…',
-      tone: driver() ? 'ok' : runner() ? 'warn' : 'muted',
-    },
-    {
-      label: 'Routes',
-      value: routes() ? `${routes()!.routes.length} routes · ${routes()!.detected}` : 'scanning…',
-      tone: routes() ? (routes()!.detected === 'none' ? 'warn' : 'ok') : 'muted',
-    },
-    {
-      label: 'Comments',
-      value: `${comments().length} captured · ${openCount()} open`,
-      tone: openCount() > 0 ? 'warn' : comments().length > 0 ? 'ok' : 'muted',
-    },
-  ])
-
   const steps = createMemo(() => [
     {
       label: 'Hub mounted',
@@ -155,7 +132,6 @@ export default function HomeApp(p: HomeAppProps) {
         role={meta()?.role}
         conn={conn()}
         docks={docks()}
-        glance={glance()}
         endpoint={mcp()?.endpoint}
       />
 

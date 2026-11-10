@@ -2,11 +2,13 @@ import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount }
 import { btnPrimary, field, hint } from '../../ui/bits'
 import { showToast } from '../../ui/toast'
 import { readDraft, stashDraft } from '../../ui/draft-stash'
+import { ExpandIcon, ShrinkIcon } from '../../ui/icons'
+import { CloseIcon, LatestIcon } from './icons'
 import { pageUrl, type Comment, type PanelApi } from '../api'
 import { samePage } from '../anchor'
 import { CHAT_WIDTH_PX } from '../page-shift'
 import { submitPageComment } from '../submit-comment'
-import ChatThread from './ChatThread'
+import ChatThread, { ChatEmpty } from './ChatThread'
 
 export interface ChatPanelProps {
   api: PanelApi
@@ -17,11 +19,15 @@ export interface ChatPanelProps {
   comments: Comment[]
   /** False while the panel slides back out; it stays mounted for the transition. */
   open: boolean
+  /** Fullscreen covers the viewport and drops the page shift. */
+  full: boolean
+  onToggleFull(): void
   onClose(): void
   onSubmitted(): void
 }
 
 const LOG_TAIL = 1200
+const SLIDE = '260ms cubic-bezier(0.32, 0.72, 0, 1)'
 
 function tail(text: string): string {
   return text.length > LOG_TAIL ? text.slice(-LOG_TAIL) : text
@@ -34,12 +40,14 @@ export default function ChatPanel(p: ChatPanelProps) {
   const [msg, setMsg] = createSignal('')
   const [busy, setBusy] = createSignal(false)
   const [logs, setLogs] = createSignal<Record<string, string>>({})
+  const [away, setAway] = createSignal(false)
   const page = pageUrl()
   const draftKey = `${page}#chat`
 
   const thread = createMemo(() =>
     p.comments.filter((c) => samePage(c.page)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
   )
+  const running = createMemo(() => thread().some((c) => c.status === 'running'))
 
   const followed = new Set<string>()
   let alive = true
@@ -64,12 +72,23 @@ export default function ChatPanel(p: ChatPanelProps) {
     }
   })
 
-  // Keep the newest message in view while the thread grows or logs stream in.
+  // Chase the tail only while the user is parked at the bottom — scrolling up
+  // to re-read must not be yanked back by the next poll or log chunk.
   createEffect(() => {
     thread()
     logs()
-    if (list) list.scrollTop = list.scrollHeight
+    if (list && !away()) list.scrollTop = list.scrollHeight
   })
+
+  function onListScroll(e: Event): void {
+    const el = e.currentTarget as HTMLDivElement
+    setAway(el.scrollHeight - el.scrollTop - el.clientHeight > 48)
+  }
+
+  function jumpToLatest(): void {
+    const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' })
+  }
 
   async function follow(commentId: string, streamId: string): Promise<void> {
     try {
@@ -136,10 +155,15 @@ export default function ChatPanel(p: ChatPanelProps) {
 
   return (
     <div
-      class={`fixed inset-y-0 z-[2147483000] flex flex-col border-r border-solid border-line bg-surface text-ink shadow-[0_0_48px_rgba(0,0,0,0.4)] ${p.open ? '' : 'pointer-events-none'}`}
-      style={{ left: `-${CHAT_WIDTH_PX}px`, width: `${CHAT_WIDTH_PX}px` }}
+      class={`fixed inset-y-0 z-[2147483000] flex flex-col border-r border-solid border-line bg-surface text-ink shadow-[0_0_32px_rgba(0,0,0,0.35)] ${p.open ? '' : 'pointer-events-none'}`}
+      style={{
+        left: p.full ? '0px' : `-${CHAT_WIDTH_PX}px`,
+        width: p.full ? '100vw' : `${CHAT_WIDTH_PX}px`,
+        transition: `left ${SLIDE}, width ${SLIDE}`,
+      }}
       role="dialog"
       aria-label="Chat"
+      aria-modal={p.full}
       aria-hidden={!p.open}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
@@ -149,28 +173,53 @@ export default function ChatPanel(p: ChatPanelProps) {
       }}
     >
       <div class="flex items-center gap-2 border-b border-solid border-line px-3 py-2.5">
-        <span class="text-[13px] font-semibold tracking-[0.01em]">Chat</span>
-        <span class={`${hint} min-w-0 flex-1 truncate font-mono`} title={p.route}>
-          {p.route}
-        </span>
+        <span
+          class={`size-2 shrink-0 rounded-full ${running() ? 'animate-pulse bg-accent' : 'bg-ink-faint'}`}
+          title={running() ? 'agent running' : 'idle'}
+        />
+        <div class="flex min-w-0 flex-1 flex-col">
+          <span class="text-[13px] font-semibold tracking-[0.01em]">Chat</span>
+          <span class={`${hint} truncate font-mono`} title={p.route}>
+            {p.route}
+          </span>
+        </div>
         <button
-          class="cursor-pointer rounded-md border-none bg-transparent px-1.5 text-[12px] text-ink-muted hover:bg-control hover:text-ink"
+          class="flex size-7 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-ink-muted transition-colors hover:bg-control hover:text-ink focus-visible:bg-control focus-visible:text-ink focus-visible:outline-none"
+          onClick={p.onToggleFull}
+          aria-label={p.full ? 'Dock chat' : 'Fullscreen chat'}
+          title={p.full ? 'Dock chat' : 'Fullscreen'}
+        >
+          {p.full ? <ShrinkIcon /> : <ExpandIcon />}
+        </button>
+        <button
+          class="flex size-7 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-ink-muted transition-colors hover:bg-control hover:text-ink focus-visible:bg-control focus-visible:text-ink focus-visible:outline-none"
           onClick={p.onClose}
           aria-label="Close chat"
+          title="Close (Esc)"
         >
-          ✕
+          <CloseIcon />
         </button>
       </div>
 
-      <div ref={list} class="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
-        <Show when={thread().length === 0}>
-          <p class={`${hint} m-0 py-6 text-center`}>
-            No comments on this page yet — send a message and the agent picks it up.
-          </p>
+      <div class="relative flex min-h-0 flex-1 flex-col">
+        <div ref={list} onScroll={onListScroll} class="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+          <Show
+            when={thread().length === 0}
+            fallback={<For each={thread()}>{(c) => <ChatThread comment={c} log={logs()[c.id]} viewer={p.viewer} onRun={runAgent} />}</For>}
+          >
+            <ChatEmpty onPick={setText} />
+          </Show>
+        </div>
+        <Show when={away()}>
+          <button
+            class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full border border-solid border-line-strong bg-surface-raised px-2.5 py-1 text-[11px] text-ink shadow-[0_4px_16px_rgba(0,0,0,0.4)] transition-colors hover:bg-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70"
+            onClick={jumpToLatest}
+            aria-label="Jump to latest message"
+          >
+            <LatestIcon />
+            Latest
+          </button>
         </Show>
-        <For each={thread()}>
-          {(c) => <ChatThread comment={c} log={logs()[c.id]} viewer={p.viewer} onRun={runAgent} />}
-        </For>
       </div>
 
       <div class="flex flex-col gap-1.5 border-t border-solid border-line p-2.5">
