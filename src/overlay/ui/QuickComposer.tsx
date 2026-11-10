@@ -1,10 +1,10 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
 import { btn, btnPrimary, chip, chipOn, field, hint, row } from '../../ui/bits'
-import { PinsIcon, PanelIcon } from '../../ui/icons'
+import { CommentIcon, PinsIcon, PanelIcon } from '../../ui/icons'
 import { showToast } from '../../ui/toast'
 import { readDraft, stashDraft } from '../../ui/draft-stash'
 import { pageUrl, type PanelApi } from '../api'
-import { globalFramework } from '../frameworks'
+import { submitPageComment } from '../submit-comment'
 
 interface RouteHit {
   path: string
@@ -19,6 +19,7 @@ export interface QuickComposerProps {
   pinsOn: boolean
   hub: string
   onPins(): void
+  onChat(): void
   onClose(): void
   onSubmitted(): void
 }
@@ -155,20 +156,8 @@ export default function QuickComposer(p: QuickComposerProps) {
     }
     setBusy(true)
     setMsg('submitting…')
-    const mentioned = /@(\/[^\s]*)/.exec(body)?.[1]
     try {
-      await p.api.call('submit-comment', {
-        body,
-        page,
-        kind: kind(),
-        selection: {
-          mode: 'page',
-          framework: globalFramework(),
-          cssPath: mentioned ?? p.route,
-          textPreview: page,
-        },
-        skills: [],
-      })
+      await submitPageComment(p.api, { body, page, route: p.route, kind: kind() })
       stashDraft(page, { body: '', skills: [] })
       showToast(kind() === 'comment' ? 'comment queued — the agent will pick it up' : 'idea saved', 'ok')
       p.onSubmitted()
@@ -202,6 +191,14 @@ export default function QuickComposer(p: QuickComposerProps) {
           onClick={p.onPins}
         >
           <PinsIcon />
+        </button>
+        <button
+          class={btn}
+          onClick={p.onChat}
+          aria-label="Open chat"
+          title="Chat — the agent works on this page's comments"
+        >
+          <CommentIcon />
         </button>
         <a class={`${btn} no-underline`} href={p.hub} target="_blank" rel="noreferrer" title="Open the comments panel">
           <PanelIcon />

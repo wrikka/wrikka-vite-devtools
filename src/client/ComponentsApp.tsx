@@ -1,11 +1,11 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
 import type { ComponentRow, ComponentsReport } from '../rpc/components'
 import type { PanelApi } from '../ui/api'
-import { btn, field, grid, hint, row, sectionLabel } from '../ui/bits'
+import { btn, field, grid, hint, panelCard, row } from '../ui/bits'
 import { BarList } from '../ui/charts'
 import Segmented from '../ui/Segmented'
 import ComponentCard from './ComponentCard'
-import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
+import { EmptyState, PanelHeader, PanelPage, PanelSection, StatStrip } from './PanelKit'
 
 type SortKey = 'risk' | 'loc' | 'name'
 type KindFilter = 'all' | 'component' | 'page' | 'layout' | 'hook'
@@ -130,7 +130,7 @@ export default function ComponentsApp(p: ComponentsPanelProps) {
         ]}
       />
 
-      <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
+      <div class={panelCard}>
         <input
           class={`${field} font-mono`}
           aria-label="Filter components"
@@ -164,10 +164,9 @@ export default function ComponentsApp(p: ComponentsPanelProps) {
       </div>
 
       <Show when={largest().length > 0}>
-        <div class="flex flex-col gap-1.5 rounded-xl border border-solid border-line bg-surface-raised p-3">
-          <span class={sectionLabel}>largest exports</span>
+        <PanelSection label="largest exports">
           <BarList items={largest()} format={(v) => `${v} lines`} />
-        </div>
+        </PanelSection>
       </Show>
 
       <Show when={report()?.truncated}>

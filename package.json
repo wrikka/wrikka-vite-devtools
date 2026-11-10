@@ -5,6 +5,9 @@
   "description": "Vite devtools hub as one plugin — 19 panels, aggregated MCP, and an in-page comment→agent overlay",
   "homepage": "https://devfra.me",
   "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
@@ -59,6 +62,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@moonrepo/cli": "^2.6.5",
     "@types/bun": "latest",
     "pkg-pr-new": "^0.0.91",
     "solid-js": "1.9.16",

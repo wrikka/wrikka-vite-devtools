@@ -1,0 +1,14 @@
+{
+  "name": "wrikka-vite-devtools-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Wrikka Devtools Companion — detects wrikka-vite-devtools on local dev servers and assists setup",
+  "scripts": {
+    "build": "vite build && vite build -c vite.content.config.ts",
+    "typecheck": "tsc --noEmit",
+    "package": "bun run build"
+  },
+  "devDependencies": {}
+}
+

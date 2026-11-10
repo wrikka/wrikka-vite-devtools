@@ -1,5 +1,18 @@
 import { For, Show, type JSX } from 'solid-js'
-import { btn, empty, hint, page, pageHead, stat, statLabel, statRow, statValue, title } from '../ui/bits'
+import {
+  btn,
+  empty,
+  hint,
+  page,
+  pageHead,
+  panelCard,
+  sectionLabel,
+  stat,
+  statLabel,
+  statRow,
+  statValue,
+  title,
+} from '../ui/bits'
 import { Sparkline } from '../ui/charts'
 
 export interface PanelHeaderProps {
@@ -118,4 +131,56 @@ export function EmptyState(p: {
 
 export function PanelPage(p: { children: JSX.Element }) {
   return <div class={page}>{p.children}</div>
+}
+
+export interface PanelSectionProps {
+  /** Small uppercase label on the left of the section header. */
+  label?: string
+  /** Muted note on the right of the header, e.g. the scale or scope. */
+  hint?: string
+  /** Controls pinned to the right of the header, before `hint`. */
+  actions?: JSX.Element
+  children: JSX.Element
+  class?: string
+}
+
+/**
+ * The standard content card: `panelCard` surface plus a labelled header row.
+ * Replaces the hand-rolled `panelCard` + `sectionLabel` pairs panels kept copying.
+ */
+export function PanelSection(p: PanelSectionProps) {
+  return (
+    <section class={`${panelCard} ${p.class ?? ''}`}>
+      <Show when={p.label || p.hint || p.actions}>
+        <div class="flex flex-wrap items-center gap-2">
+          <Show when={p.label}>
+            <span class={sectionLabel}>{p.label}</span>
+          </Show>
+          <Show when={p.actions}>
+            <span class="ml-auto flex items-center gap-1.5">{p.actions}</span>
+          </Show>
+          <Show when={p.hint}>
+            <span class={`${hint} ${p.actions ? '' : 'ml-auto'}`}>{p.hint}</span>
+          </Show>
+        </div>
+      </Show>
+      {p.children}
+    </section>
+  )
+}
+
+/** Pulsing placeholder rows for panels that have nothing to show yet. */
+export function Skeleton(p: { lines?: number; class?: string }) {
+  const rows = () => Array.from({ length: p.lines ?? 3 }, (_, i) => i)
+  return (
+    <div class={`flex flex-col gap-2 ${p.class ?? ''}`} aria-hidden>
+      <For each={rows()}>
+        {(i) => (
+          <div
+            class={`h-3 animate-pulse rounded-md bg-control ${i % 3 === 2 ? 'w-2/3' : i % 3 === 1 ? 'w-4/5' : 'w-full'}`}
+          />
+        )}
+      </For>
+    </div>
+  )
 }

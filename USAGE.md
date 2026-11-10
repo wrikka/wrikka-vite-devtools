@@ -150,6 +150,17 @@ panel does not get a duplicate of itself.
    back to `/__devtools/` — so a hub mounted under a base path still links correctly.
    The glyphs are inline SVG: no Iconify request, works offline.
 
+### In-page chat sidebar
+
+A second pill (`ChatPill`, stacked above the comment icon) opens a Lovable-style chat: a ~400 px
+left sidebar while `page-shift.ts` translates the whole document right, so the page stays usable
+beside the thread. The thread shows the route's comment exchanges — user bubbles, agent status
+pills, live `agent-logs` tails — and its composer submits through the same `submit-comment` RPC
+(draft persisted like the quick composer). Open it from the pill, the composer header, or
+programmatically: `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__.openChat()` / `.closeChat()`, or
+`window.dispatchEvent(new CustomEvent('wrikka:open-chat'))` — the contract the
+`packages/browser-extension` content script uses.
+
 ### Hub Comments panel
 
 The same SPA is the hub **Comments** dock page (`<base>wrikka-vite-devtools/`), a tabbed panel

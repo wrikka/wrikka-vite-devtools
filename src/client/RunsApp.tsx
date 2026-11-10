@@ -1,9 +1,9 @@
 import { For, Show, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from '../ui/api'
-import { btn, chip, chipOn, grid, hint, row, statusPill, tile } from '../ui/bits'
+import { btn, chip, chipOn, grid, hint, row, statusPill, tile, toolbar } from '../ui/bits'
 import SendToAgent from '../ui/SendToAgent'
-import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
+import { EmptyState, PanelHeader, PanelPage, Skeleton, StatStrip } from './PanelKit'
 import { fmtMs, fmtWhen } from './format'
 
 interface RunnerInfo {
@@ -111,7 +111,7 @@ export default function RunsApp(p: RunsAppProps) {
         <span class={hint}>{msg()}</span>
       </div>
 
-      <div class={row}>
+      <div class={toolbar}>
         <For each={FILTERS}>{(f) => (
           <button class={`${chip} ${filter() === f ? chipOn : ''}`} onClick={() => setFilter(f)}>
             {f} ({f === 'all' ? items().length : counts()[f]})
@@ -121,6 +121,10 @@ export default function RunsApp(p: RunsAppProps) {
           <span class={`${hint} ml-auto`}>installed: {info()?.available.join(', ') || 'none'}</span>
         </Show>
       </div>
+
+      <Show when={busy() && items().length === 0}>
+        <Skeleton lines={4} />
+      </Show>
 
       <Show when={!busy() && visible().length === 0}>
         <EmptyState

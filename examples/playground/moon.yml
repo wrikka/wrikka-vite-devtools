@@ -1,0 +1,14 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+language: 'typescript'
+tasks:
+  dev:
+    command: 'bunx vite --port 5199'
+    deps:
+      - 'wrikka-vite-devtools:build'
+    options:
+      persistent: true
+      outputStyle: 'stream'
+  preview:
+    script: 'bunx vite build --watch=false && bunx vite preview --port 5199'
+    deps:
+      - 'wrikka-vite-devtools:build'

@@ -6,6 +6,8 @@ export interface Step {
   label: string
   detail: string
   done: boolean
+  /** Still probing — reads as in-progress rather than failed. */
+  pending?: boolean
   act?: () => void
   actLabel?: string
 }
@@ -15,15 +17,17 @@ export interface HomeStepsProps {
   cwd?: string
 }
 
-function statusTone(ok: boolean): string {
-  return ok ? 'bg-ok' : 'bg-bad'
+function statusTone(s: Step): string {
+  if (s.done) return 'bg-ok'
+  if (s.pending) return 'animate-pulse bg-warn'
+  return 'bg-bad'
 }
 
 /** Boot-path checklist with a readiness gauge and the workspace path. */
 export default function HomeSteps(p: HomeStepsProps) {
   const done = () => p.steps.filter((s) => s.done).length
   return (
-    <div class={`${panelCard} lg:col-span-2`}>
+    <div class={panelCard}>
       <div class="flex items-center gap-2">
         <span class={sectionLabel}>onboarding</span>
         <span class={`${hint} ml-auto tabular-nums`}>
@@ -36,7 +40,7 @@ export default function HomeSteps(p: HomeStepsProps) {
       <For each={p.steps}>
         {(s) => (
           <div class={listRow}>
-            <span class={`size-2 shrink-0 rounded-full ${statusTone(s.done)}`} aria-hidden />
+            <span class={`size-2 shrink-0 rounded-full ${statusTone(s)}`} aria-hidden />
             <span class="flex min-w-0 flex-col">
               <span class="text-[12px] font-medium text-ink">{s.label}</span>
               <span class={`${hint} truncate`} title={s.detail}>

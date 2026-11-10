@@ -10,6 +10,7 @@ import {
   field,
   hint,
   kindTone,
+  panelCard,
   row,
   tonePill,
 } from '../ui/bits'
@@ -137,7 +138,7 @@ export default function RoutesApp(p: RoutesPanelProps) {
 
       <RoutesSummary stats={stats()} counts={counts()} kind={kind()} onKind={(id) => setKind(id as KindFilter)} />
 
-      <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-2.5">
+      <div class={panelCard}>
         <div class={row}>
           <input
             class={`${field} max-w-64 font-mono`}

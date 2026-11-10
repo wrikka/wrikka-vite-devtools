@@ -1,0 +1,11 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+language: 'typescript'
+tasks:
+  build:
+    command: 'bun run build'
+  typecheck:
+    command: 'bunx tsc --noEmit'
+  package:
+    command: 'bun run package'
+    deps:
+      - 'build'

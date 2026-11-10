@@ -6,10 +6,17 @@ import { mountShadowHost } from './host'
 import App from './ui/App'
 import { connectPanelApi } from '../ui/connect'
 import { startCollectors } from './collectors'
+import { openOverlayChat, closeOverlayChat } from './chat-control'
+
+/** Contract for the browser extension: openChat()/closeChat() plus 'wrikka:open-chat'. */
+export interface OverlayHandle {
+  openChat(): void
+  closeChat(): void
+}
 
 declare global {
   interface Window {
-    __WRIKKA_VITE_DEVTOOLS_OVERLAY__?: boolean
+    __WRIKKA_VITE_DEVTOOLS_OVERLAY__?: OverlayHandle
   }
 }
 
@@ -17,7 +24,8 @@ declare global {
 // the self-call below. Both paths are guarded so the toolbar mounts exactly once.
 export default async function mountOverlay(): Promise<void> {
   if (window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__) return
-  window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__ = true
+  window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__ = { openChat: openOverlayChat, closeChat: closeOverlayChat }
+  window.addEventListener('wrikka:open-chat', openOverlayChat)
   if (isHubDocument(import.meta.url, location.pathname)) return
   if (isMutedEmbed()) return
   await boot()

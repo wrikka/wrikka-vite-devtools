@@ -1,20 +1,22 @@
 // Shared UnoCSS class strings — semantic tokens from src/ui/theme.ts, no raw hex.
+// Interactive tokens carry `transition-colors` plus a `focus-visible` affordance so
+// every panel (and the overlay, which shares these strings) gets the same polish.
 export const btn =
-  'cursor-pointer rounded-md border border-solid border-line bg-control px-2 py-0.5 text-[12px] text-ink hover:bg-control-hover'
+  'cursor-pointer rounded-md border border-solid border-line bg-control px-2 py-0.5 text-[12px] text-ink transition-colors hover:bg-control-hover focus-visible:border-line-strong focus-visible:bg-control-hover focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const btnActive = 'border-accent bg-control-hover'
 export const btnPrimary =
-  'cursor-pointer rounded-md border border-solid border-accent bg-accent px-3 py-1 text-[12px] font-semibold text-white hover:bg-accent-hover disabled:cursor-default disabled:opacity-50'
+  'cursor-pointer rounded-md border border-solid border-accent bg-accent px-3 py-1 text-[12px] font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:border-accent-hover focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const hint = 'text-[11px] text-ink-muted'
 export const field =
-  'w-full rounded-lg border border-solid border-line bg-control p-2 text-[12px] text-ink placeholder:text-ink-faint focus:border-line-strong focus:outline-none'
+  'w-full rounded-lg border border-solid border-line bg-control p-2 text-[12px] text-ink transition-colors placeholder:text-ink-faint focus:border-line-strong focus-visible:border-line-strong focus:outline-none'
 export const chip =
-  'cursor-pointer rounded-full border border-solid border-line bg-control px-2 py-0.5 text-[11px] text-ink hover:bg-control-hover'
+  'cursor-pointer rounded-full border border-solid border-line bg-control px-2 py-0.5 text-[11px] text-ink transition-colors hover:bg-control-hover focus-visible:border-line-strong focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const chipOn = 'border-accent bg-accent text-white'
 export const row = 'flex flex-wrap items-center gap-1.5'
 export const card = 'flex flex-col gap-1 rounded-lg border border-solid border-line bg-surface-raised p-2'
 export const link = 'text-accent-ink underline underline-offset-2 hover:text-accent-hover'
 export const iconBtn =
-  'flex cursor-pointer items-center justify-center rounded-md border border-solid border-transparent p-1.5 text-ink-muted hover:bg-control-hover hover:text-ink'
+  'flex cursor-pointer items-center justify-center rounded-md border border-solid border-transparent p-1.5 text-ink-muted transition-colors hover:bg-control-hover hover:text-ink focus-visible:bg-control-hover focus-visible:text-ink focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const iconBtnOn = 'border-line-strong bg-control text-ink'
 
 /** Page shell shared by every panel in this package's client. */
@@ -32,13 +34,13 @@ export const statLabel = 'text-[10px] font-medium uppercase tracking-wider text-
 /** Grid of visual cards (Components uses this as its main view). */
 export const grid = 'grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3'
 export const tile =
-  'flex flex-col gap-1.5 rounded-xl border border-solid border-line bg-surface-raised p-3 text-left transition-colors hover:border-line-strong hover:bg-control'
+  'flex flex-col gap-1.5 rounded-xl border border-solid border-line bg-surface-raised p-3 text-left transition-colors hover:border-line-strong hover:bg-control focus-visible:border-line-strong focus-visible:bg-control focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const tileOn = 'border-accent bg-accent-soft hover:bg-accent-soft hover:border-accent'
 
 /** Segmented tab bar for a panel's top-level views. */
 export const tabBar = 'flex flex-wrap items-center gap-1 rounded-xl border border-solid border-line bg-surface-raised p-1'
 export const tab =
-  'flex cursor-pointer items-center gap-1.5 rounded-lg border border-solid border-transparent px-2.5 py-1 text-[12px] text-ink-muted hover:bg-control hover:text-ink'
+  'flex cursor-pointer items-center gap-1.5 rounded-lg border border-solid border-transparent px-2.5 py-1 text-[12px] text-ink-muted transition-colors hover:bg-control hover:text-ink focus-visible:bg-control focus-visible:text-ink focus-visible:outline-none disabled:cursor-default disabled:opacity-50'
 export const tabOn = 'border-line-strong bg-control text-ink'
 
 export const empty =

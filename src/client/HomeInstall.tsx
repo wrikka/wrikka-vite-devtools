@@ -1,5 +1,5 @@
 import { For, Show, createMemo, createSignal } from 'solid-js'
-import { btn, codeBlock, hint, row, sectionLabel, tab, tabBar, tabOn } from '../ui/bits'
+import { btn, codeBlock, hint, panelCard, row, sectionLabel, tab, tabBar, tabOn } from '../ui/bits'
 import { copyText, showToast } from '../ui/toast'
 import { hubBase, panelUrl } from './panel-catalog'
 
@@ -67,7 +67,7 @@ export default function HomeInstall(p: HomeInstallProps) {
   ])
 
   return (
-    <div class="flex flex-col gap-2 rounded-xl border border-solid border-line bg-surface-raised p-3">
+    <div class={panelCard}>
       <div class={row}>
         <span class={sectionLabel}>install &amp; configure</span>
         <span class={`${hint} ml-auto`}>one plugin line, then every panel is live</span>

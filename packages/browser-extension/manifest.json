@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Wrikka Devtools Companion",
+  "version": "0.1.0",
+  "description": "Detects wrikka-vite-devtools on local Vite dev servers and helps set it up.",
+  "permissions": ["activeTab", "scripting", "storage", "contextMenus"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Wrikka Devtools"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

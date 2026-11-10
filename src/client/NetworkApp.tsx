@@ -1,10 +1,10 @@
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { btn, grid, hint, panelCard, row, sectionLabel, tile, tileOn, tonePill, type Tone } from '../ui/bits'
+import { btn, grid, hint, row, tile, tileOn, tonePill, type Tone } from '../ui/bits'
 import { bucketize } from '../ui/chart-math'
 import { BarList, Sparkline } from '../ui/charts'
 import Segmented from '../ui/Segmented'
-import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
+import { EmptyState, PanelHeader, PanelPage, PanelSection, StatStrip } from './PanelKit'
 import { fmtBytes, fmtMs, fmtWhen } from './format'
 import { shortUrl, statusTone } from './network-util'
 import NetworkDetail from './NetworkDetail'
@@ -115,11 +115,7 @@ export default function NetworkApp(p: { api: PanelApi }) {
 
       <Show when={requests().length > 0}>
         <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
-          <div class={panelCard}>
-            <div class={row}>
-              <span class={sectionLabel}>duration buckets</span>
-              <span class={`${hint} ml-auto`}>ms</span>
-            </div>
+          <PanelSection label="duration buckets" hint="ms">
             <BarList
               items={buckets().map((b, i) => ({
                 label: b.label,
@@ -127,15 +123,11 @@ export default function NetworkApp(p: { api: PanelApi }) {
                 tone: BUCKET_TONES[Math.min(i, BUCKET_TONES.length - 1)],
               }))}
             />
-          </div>
-          <div class={panelCard}>
-            <div class={row}>
-              <span class={sectionLabel}>duration over time</span>
-              <span class={`${hint} ml-auto`}>last 60</span>
-            </div>
+          </PanelSection>
+          <PanelSection label="duration over time" hint="last 60">
             <Sparkline values={durationSpark()} width={280} height={62} tone="info" label="request durations" />
             <span class={hint}>oldest → newest · p95 {fmtMs(stats().p95)}</span>
-          </div>
+          </PanelSection>
         </div>
       </Show>
 

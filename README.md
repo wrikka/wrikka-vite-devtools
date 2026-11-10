@@ -70,6 +70,12 @@ as a **single Vite plugin** — add `useWrikkaViteDevtools()` to `vite.config.ts
 | ![i](https://api.iconify.design/mdi/inbox-arrow-down.svg?color=%2300796b&width=16) | Comments workspace | Hub tab with Inbox (status chips, page filter, cards ↔ list), Re-run and live logs, a composer with skills + page capture, Ideas and Diagnostics — with operator / viewer gating | drive and audit the whole agent queue from one place | open `<base>wrikka-vite-devtools/` |
 | ![h](https://api.iconify.design/mdi/view-dashboard-outline.svg?color=%23607d8b&width=16) | Hub, Home and 19 panels | Home opens the dock rail with onboarding, live stats and install/config tabs (terminal, Vite, MCP client, panel URLs); Components, Routes & SEO, Solid and 14 audit panels share one client build | one plugin wires the whole devtool chain | `plugins: 'all'` |
 | ![m](https://api.iconify.design/mdi/hexagon-multiple.svg?color=%23d32f2f&width=16) | Aggregated MCP | Every mounted frame's tools at `POST <base>__mcp`, grouped by app in the MCP Playground with per-tool arg counts and copyable client config | let any agent client read the inbox and call the same tools | `mcp: 'auto'` |
+| ![c](https://api.iconify.design/mdi/chat-outline.svg?color=%236a1b9a&width=16) | Lovable-style chat | A second in-page pill opens a left sidebar: the whole page slides right and a chat thread (user bubbles, agent status, live log tail) drives the same comment→agent pipeline | talk to the agent in page context, Lovable-style | click the chat pill, or dispatch `wrikka:open-chat` |
+| ![e](https://api.iconify.design/mdi/puzzle-outline.svg?color=%2300878b&width=16) | Browser extension | `packages/browser-extension` (MV3): detects localhost dev servers and whether the plugin is mounted; opens the chat or the hub, and recommends the setup snippet when it is not | find devtools on any tab without guessing | load `dist/` unpacked |
+
+The repo is a [moonrepo](https://moonrepo.dev) monorepo — `bunx moon projects` lists
+`wrikka-vite-devtools` (root), `playground` (`examples/playground`, a multi-page examples site:
+home, form, dashboard, pricing, kanban) and `browser-extension` (`packages/browser-extension`).
 
 ## Dock panels
 

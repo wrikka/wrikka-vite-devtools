@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+language: 'typescript'
+tasks:
+  build:
+    command: 'bun run build'
+    options:
+      outputStyle: 'stream'
+  typecheck:
+    command: 'bun run typecheck'
+  test:
+    command: 'bun test'
+  playground:
+    command: 'bun run playground'
+  verify:
+    script: 'bun run typecheck && bun test && bun run build'

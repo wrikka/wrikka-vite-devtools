@@ -10,4 +10,15 @@ export default defineConfig({
     UnoCSS(resolve(import.meta.dirname, 'uno.config.ts')),
     useWrikkaViteDevtools({ plugins: 'all', auth: false }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(import.meta.dirname, 'index.html'),
+        form: resolve(import.meta.dirname, 'form.html'),
+        dashboard: resolve(import.meta.dirname, 'dashboard.html'),
+        pricing: resolve(import.meta.dirname, 'pricing.html'),
+        kanban: resolve(import.meta.dirname, 'kanban.html'),
+      },
+    },
+  },
 })

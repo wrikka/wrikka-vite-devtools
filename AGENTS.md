@@ -21,7 +21,9 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
 ## Scope
 
 - In: `src/` (plugin, devframe definition, RPC, agent runner, overlay, frame SPA),
-  `examples/playground/` (verification host), `README.md`, `USAGE.md`, `.github/workflows/`
+  `examples/playground/` (multi-page verification host + examples site),
+  `packages/browser-extension/` (MV3 companion), `.moon/` + `moon.yml` (moonrepo workspace),
+  `README.md`, `USAGE.md`, `.github/workflows/`
 - Out: upstream Devframe behaviour (`follow-tool-devfra`), host-app integration in other repos,
   `dist/` and `node_modules/` (generated)
 - Global skills for this repo: `/use-wrikka-vite-devtools` (mount in a host project) and
@@ -47,6 +49,12 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   → hub `http://localhost:5199/__devtools/`
 - `bun run typecheck` — `bun check` over `src` + the build configs
 - `bun test` — the Bun test suite (`src/**/*.test.ts`); run it with the typecheck before every commit
+- Moon (moonrepo, `.moon/workspace.yml` projects: `.` = `wrikka-vite-devtools`, `examples/*`, `packages/*`):
+  `bunx moon run <project>:<task>` — e.g. `wrikka-vite-devtools:verify`, `playground:dev`
+  (depends on `wrikka-vite-devtools:build`), `browser-extension:build|typecheck|package`;
+  `bunx moon projects` / `bunx moon tasks <project>` inspect the graph
+- Extension: `cd packages/browser-extension && bun run build` (two vite passes → `dist/`),
+  `bun run typecheck` (`tsc --noEmit`); load `dist/` unpacked in `chrome://extensions`
 - CI (`.github/workflows/publish.yml`): `bun install --frozen-lockfile` → `bun run build` →
   `bunx --bun pkg-pr-new publish` — no test step, so run `bun run typecheck && bun test` locally as the gate
 
@@ -70,12 +78,20 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
    `hub.ts` (hub base from the served module URL) → `ui/` chrome (`Pill` — one icon anchored
    bottom-left at `left-14`, clear of the hub's 40 px rail, `QuickComposer` — inline body, `@`
    route mention list, clickable start chips, Pins toggle and hub link, `Panel` shell, `Pins`
-   annotations + bubbles refreshed from the 5s poll) plus the shared `src/ui/` components →
+   annotations + bubbles refreshed from the 5s poll, `ChatPill` + `ChatPanel` — the Lovable-style
+   chat surface) plus the shared `src/ui/` components →
    `main.tsx` (`mountOverlay()` + guarded self-call, panel surface via `connectPanelApi()`).
    There is no element picker/inspector mode: the composer targets a route (`@` mention or the
    current path) and the target element is captured once when the icon opens. Pins stay
    imperative DOM (`anchor.ts`); only the chrome is Solid.
    `CommentStore.update` must replace items immutably — devframe shared state freezes them.
+   Chat mode: `page-shift.ts` translates `document.documentElement` by `CHAT_WIDTH_PX` (400) so the
+   whole page slides right while `ChatPanel` counters to viewport `left:0`; `chat-control.ts`
+   bridges the window contract — `__WRIKKA_VITE_DEVTOOLS_OVERLAY__` is `{ openChat, closeChat }`
+   (was a boolean guard; truthiness checks still hold) and `window` listens for the
+   `wrikka:open-chat` CustomEvent, which `packages/browser-extension`'s content script dispatches.
+   Chat reuses existing RPCs only (`submit-comment` via `submit-comment.ts`, `list-comments`,
+   `run-agent`, `agent-logs`, `get-meta`) — never add RPC names for it.
 4. RPC ids are kebab-case `name` fields on `defineRpcFunction`; the same string is the client call id
    and the MCP suffix (`wrikka-vite-devtools_submit-comment`). Never rename without updating `USAGE.md` §5.
 5. State lives in `CommentStore` (`comments.json` under the hub project storage dir) and mirrors into
@@ -134,7 +150,8 @@ to an agent CLI. Agents must be able to follow this file end to end without gues
   (the host page must never be reset).
 - The dock executor imports that URL and calls `mod[importName ?? 'default']`, so
   `src/overlay/main.tsx` must export a **callable default**; it also self-calls, and both paths
-  share the `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__` guard. A side-effect-only module logs
+  share the `window.__WRIKKA_VITE_DEVTOOLS_OVERLAY__` guard (`{ openChat, closeChat }` — keep it
+  truthy and callable-safe for the dock executor). A side-effect-only module logs
   `exports no callable "default"`.
 - `tsdown` `clean: true` deletes `dist/` — the `build` script order is load-bearing; never add a
   script that builds `client` before `pkg`.

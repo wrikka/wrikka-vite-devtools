@@ -1,12 +1,12 @@
 import { For, Show, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import type { PanelApi } from '../ui/api'
-import { btn, hint, kbd, panelCard, row, sectionLabel, tonePill } from '../ui/bits'
+import { btn, hint, kbd, row, tonePill } from '../ui/bits'
 import { BarList } from '../ui/charts'
 import Segmented from '../ui/Segmented'
 import SendToAgent from '../ui/SendToAgent'
 import ConsoleDetail, { type Line } from './ConsoleDetail'
 import { FILTERS, LEVEL_BAR, LEVEL_TONE, asLevel, type Filter, type Level } from './console-levels'
-import { EmptyState, PanelHeader, PanelPage, StatStrip } from './PanelKit'
+import { EmptyState, PanelHeader, PanelPage, PanelSection, StatStrip } from './PanelKit'
 import { fmtWhen } from './format'
 import { createRuntimeFeed, str } from './runtimeFeed'
 
@@ -185,22 +185,18 @@ export default function ConsoleApp(p: { api: PanelApi }) {
       </Show>
 
       <Show when={pageLines().length > 0}>
-        <div class={panelCard}>
-          <div class={row}>
-            <span class={sectionLabel}>lines by level</span>
-            <span class={`${hint} ml-auto`}>page only · agent output stays raw</span>
-          </div>
+        <PanelSection label="lines by level" hint="page only · agent output stays raw">
           <BarList
             items={LEVELS.map((level) => ({ label: level, value: counts()[level], tone: LEVEL_TONE[level] }))}
           />
-        </div>
+        </PanelSection>
       </Show>
 
       <Show when={visible().length > 0}>
         <div class="flex max-h-96 flex-col overflow-auto rounded-xl border border-solid border-line bg-surface-raised p-1">
           <For each={visible().slice(0, 400)}>{(line) => (
             <button
-              class={`flex w-full items-stretch gap-2 rounded-md px-2 py-1 text-left hover:bg-control ${current()?.id === line.id ? 'bg-control' : ''}`}
+              class={`flex w-full items-stretch gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-control focus-visible:bg-control focus-visible:outline-none ${current()?.id === line.id ? 'bg-control' : ''}`}
               onClick={() => setSelected(line.id)}
             >
               <span class={`my-0.5 w-0.5 shrink-0 rounded-full ${LEVEL_BAR[line.level as Level]}`} aria-hidden />

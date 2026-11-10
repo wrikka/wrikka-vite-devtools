@@ -4,7 +4,9 @@ import { unoPipelineInclude } from '../../src/uno-pipeline.ts'
 import { themeColors } from '../../src/ui/theme.ts'
 
 // Same palette as the dock panels, so the playground host reads as one product.
-const files = ['index.html', 'main.ts'].map((name) => join(import.meta.dirname, name))
+const files = ['index.html', 'form.html', 'dashboard.html', 'pricing.html', 'kanban.html', 'main.ts'].map((name) =>
+  join(import.meta.dirname, name),
+)
 
 export default defineConfig({
   presets: [presetWind4()],

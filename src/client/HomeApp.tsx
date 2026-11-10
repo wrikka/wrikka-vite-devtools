@@ -1,14 +1,14 @@
-import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
+import { createMemo, createSignal, onMount } from 'solid-js'
 import type { Comment } from '../protocol'
 import type { PanelApi } from '../ui/api'
-import { btn, btnPrimary, hero, hint, row, sectionLabel, tonePill } from '../ui/bits'
-import { copyText, showToast } from '../ui/toast'
+import HomeDashboard, { type GlanceItem } from './HomeDashboard'
 import HomeInstall from './HomeInstall'
 import HomePanels from './HomePanels'
+import HomeStats, { CommentPipeline } from './HomeStats'
 import HomeSteps from './HomeSteps'
-import { PanelHeader, StatStrip } from './PanelKit'
+import { PanelHeader, PanelPage } from './PanelKit'
 import { fetchHubJson, openDock, type HubConnection, type HubIndex } from './hub-link'
-import { PANELS, hubBase } from './panel-catalog'
+import { PANELS } from './panel-catalog'
 
 interface Meta {
   tool: string
@@ -83,17 +83,43 @@ export default function HomeApp(p: HomeAppProps) {
 
   const openCount = createMemo(() => comments().filter((c) => c.status !== 'done').length)
   const driver = createMemo(() => runner()?.driver ?? runner()?.available[0])
+  const docks = createMemo(() => index()?.frames.length ?? PANELS.length)
+
+  const glance = createMemo<GlanceItem[]>(() => [
+    {
+      label: 'MCP endpoint',
+      value: mcp() ? (mcp()!.ok ? `${mcp()!.tools.length} tools reachable` : (mcp()!.error ?? 'unreachable')) : 'probing…',
+      tone: mcp() ? (mcp()!.ok ? 'ok' : 'bad') : 'muted',
+    },
+    {
+      label: 'Agent CLI',
+      value: runner() ? (driver() ?? 'none installed') : 'probing installed CLIs…',
+      tone: driver() ? 'ok' : runner() ? 'warn' : 'muted',
+    },
+    {
+      label: 'Routes',
+      value: routes() ? `${routes()!.routes.length} routes · ${routes()!.detected}` : 'scanning…',
+      tone: routes() ? (routes()!.detected === 'none' ? 'warn' : 'ok') : 'muted',
+    },
+    {
+      label: 'Comments',
+      value: `${comments().length} captured · ${openCount()} open`,
+      tone: openCount() > 0 ? 'warn' : comments().length > 0 ? 'ok' : 'muted',
+    },
+  ])
 
   const steps = createMemo(() => [
     {
       label: 'Hub mounted',
       detail: index() ? `${index()!.frames.length} docks · ${conn()?.backend ?? 'backend'}` : 'no __index.json yet',
       done: Boolean(index()),
+      pending: !index(),
     },
     {
       label: 'Aggregated MCP',
       detail: mcp()?.ok ? `${mcp()!.tools.length} tools reachable` : (mcp()?.error ?? 'endpoint down'),
       done: Boolean(mcp()?.ok),
+      pending: !mcp(),
       act: () => void openDock('mcp-playground', 'mcp-playground'),
       actLabel: 'playground',
     },
@@ -101,6 +127,7 @@ export default function HomeApp(p: HomeAppProps) {
       label: 'Routes scanned',
       detail: routes() ? `${routes()!.routes.length} routes · ${routes()!.detected}` : 'scanning…',
       done: Boolean(routes() && routes()!.detected !== 'none'),
+      pending: !routes(),
       act: () => void openDock('routes', 'routes'),
       actLabel: 'routes',
     },
@@ -108,119 +135,52 @@ export default function HomeApp(p: HomeAppProps) {
       label: 'Agent CLI',
       detail: runner() ? (driver() ?? 'none installed — install claude, codex or opencode') : 'probing installed CLIs…',
       done: Boolean(driver()),
+      pending: !runner(),
       act: () => void openDock('runs', 'runs'),
       actLabel: 'runs',
     },
   ])
 
-  async function copyEndpoint(): Promise<void> {
-    const endpoint = mcp()?.endpoint ?? `${hubBase()}__mcp`
-    const ok = await copyText(endpoint)
-    showToast(ok ? 'MCP endpoint copied' : 'could not copy the endpoint', ok ? 'ok' : 'bad')
-  }
-
   return (
-    <div class="flex flex-col gap-3 p-4">
+    <PanelPage>
       <PanelHeader
         title="Home"
         description={meta() ? `${meta()!.tool} · v${meta()!.version} · ${meta()!.platform}` : WORKSPACE}
         busy={busy()}
         refresh={() => void load()}
         refreshLabel="Refresh"
-        actions={
-          <>
-            <Show when={meta()?.role}>
-              {(role) => (
-                <span
-                  class={tonePill(role() === 'operator' ? 'ok' : 'warn')}
-                  title={
-                    role() === 'operator'
-                      ? 'this session can run agents and edit comments'
-                      : 'read-only session'
-                  }
-                >
-                  {role()} role
-                </span>
-              )}
-            </Show>
-            <a class={`${btn} no-underline`} href={hubBase()} target="_blank" rel="noreferrer">
-              Open hub
-            </a>
-          </>
-        }
       />
 
-      <section class={hero}>
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div class="flex flex-col gap-2 lg:col-span-3">
-            <span class={sectionLabel}>devtools hub</span>
-            <h2 class="m-0 max-w-xl text-[24px] font-semibold leading-tight tracking-tight text-ink">
-              Every devtool your app needs, docked on the left.
-            </h2>
-            <p class={`${hint} max-w-xl`}>
-              Panels read the running dev server, comment capture drives an agent CLI, and the hub advertises one
-              aggregated MCP endpoint for any client.
-            </p>
-            <div class={row}>
-              <button class={btnPrimary} onClick={() => void openDock('wrikka-vite-devtools', '')}>
-                Open comments
-              </button>
-              <button class={btn} onClick={() => void openDock('mcp-playground', 'mcp-playground')}>
-                MCP playground
-              </button>
-              <button class={btn} onClick={() => void copyEndpoint()}>
-                Copy MCP endpoint
-              </button>
-            </div>
-          </div>
+      <HomeDashboard
+        role={meta()?.role}
+        conn={conn()}
+        docks={docks()}
+        glance={glance()}
+        endpoint={mcp()?.endpoint}
+      />
 
-          <ol class="m-0 flex list-none flex-col gap-1.5 p-0 lg:col-span-2">
-            <For each={['Install the plugin', 'Open /__devtools/', 'Comment, or type @route']}>
-              {(text, i) => (
-                <li class="flex items-center gap-2 rounded-lg border border-solid border-line bg-surface-raised/80 px-2.5 py-1.5">
-                  <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10px] font-bold text-accent-ink">
-                    {i() + 1}
-                  </span>
-                  <span class="text-[11px] text-ink">{text}</span>
-                </li>
-              )}
-            </For>
-            <li class={`${hint} px-1`}>{conn()?.backend ? `backend: ${conn()!.backend}` : 'waiting for the hub'}</li>
-          </ol>
-        </div>
-      </section>
-
-      <StatStrip
-        items={[
-          { value: index()?.frames.length ?? PANELS.length, label: 'docks', hint: conn()?.backend },
-          {
-            value: mcp()?.tools.length ?? '—',
-            label: 'MCP tools',
-            hint: mcp()?.ok ? 'reachable' : 'endpoint down',
-            tone: mcp()?.ok ? undefined : 'text-bad-ink',
-          },
-          {
-            value: routes()?.routes.length ?? '—',
-            label: 'routes',
-            hint: routes()?.detected === 'none' ? 'no router detected' : routes()?.detected,
-            tone: routes()?.detected === 'none' ? 'text-ink-faint' : undefined,
-          },
-          {
-            value: comments().length,
-            label: openCount() > 0 ? `${openCount()} open` : 'comments',
-            tone: openCount() > 0 ? 'text-warn-ink' : undefined,
-          },
-        ]}
+      <HomeStats
+        docks={docks()}
+        backend={conn()?.backend}
+        mcpTools={mcp()?.tools.length}
+        mcpOk={mcp()?.ok}
+        routes={routes()?.routes.length}
+        routesDetected={routes()?.detected}
+        comments={comments()}
+        openCount={openCount()}
       />
 
       <div class="grid grid-cols-1 gap-2 lg:grid-cols-5">
         <div class="lg:col-span-3">
           <HomeInstall endpoint={mcp()?.endpoint} />
         </div>
-        <HomeSteps steps={steps()} cwd={meta()?.cwd} />
+        <div class="flex flex-col gap-2 lg:col-span-2">
+          <HomeSteps steps={steps()} cwd={meta()?.cwd} />
+          <CommentPipeline comments={comments()} />
+        </div>
       </div>
 
       <HomePanels />
-    </div>
+    </PanelPage>
   )
 }
